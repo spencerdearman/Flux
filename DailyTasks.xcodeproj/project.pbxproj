@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		4D9CB80A2F8C41AC00F536E1 /* DailyTasks Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 4D9CB8092F8C41AC00F536E1 /* DailyTasks Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4D9CB8A32F8DA9CB00F536E1 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D9CB8A22F8DA9CB00F536E1 /* WidgetKit.framework */; };
+		4D9CB8A52F8DA9CB00F536E1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D9CB8A42F8DA9CB00F536E1 /* SwiftUI.framework */; };
+		4D9CB8B42F8DA9CD00F536E1 /* DailyTasksWidgetExtensionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4D9CB8A02F8DA9CB00F536E1 /* DailyTasksWidgetExtensionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -17,6 +20,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 4D9CB8082F8C41AC00F536E1;
 			remoteInfo = "DailyTasks Watch App";
+		};
+		4D9CB8B22F8DA9CD00F536E1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4D9CB7FD2F8C41AC00F536E1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4D9CB89F2F8DA9CB00F536E1;
+			remoteInfo = DailyTasksWidgetExtensionExtension;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -32,17 +42,60 @@
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4D9CB8B92F8DA9CD00F536E1 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				4D9CB8B42F8DA9CD00F536E1 /* DailyTasksWidgetExtensionExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		4D9CB8032F8C41AC00F536E1 /* DailyTasks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyTasks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D9CB8092F8C41AC00F536E1 /* DailyTasks Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "DailyTasks Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4D9CB8A02F8DA9CB00F536E1 /* DailyTasksWidgetExtensionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DailyTasksWidgetExtensionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4D9CB8A22F8DA9CB00F536E1 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		4D9CB8A42F8DA9CB00F536E1 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		4D9CB8BB2F8DAA9400F536E1 /* DailyTasksWidgetExtensionExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DailyTasksWidgetExtensionExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4D9CB8B52F8DA9CD00F536E1 /* Exceptions for "DailyTasksWidgetExtension" folder in "DailyTasksWidgetExtensionExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4D9CB89F2F8DA9CB00F536E1 /* DailyTasksWidgetExtensionExtension */;
+		};
+		4D9CB8C02F8DAB1F00F536E1 /* Exceptions for "DailyTasks Watch App" folder in "DailyTasksWidgetExtensionExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				SharedWidgetData.swift,
+			);
+			target = 4D9CB89F2F8DA9CB00F536E1 /* DailyTasksWidgetExtensionExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		4D9CB80D2F8C41AC00F536E1 /* DailyTasks Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4D9CB8C02F8DAB1F00F536E1 /* Exceptions for "DailyTasks Watch App" folder in "DailyTasksWidgetExtensionExtension" target */,
+			);
 			path = "DailyTasks Watch App";
+			sourceTree = "<group>";
+		};
+		4D9CB8A62F8DA9CB00F536E1 /* DailyTasksWidgetExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4D9CB8B52F8DA9CD00F536E1 /* Exceptions for "DailyTasksWidgetExtension" folder in "DailyTasksWidgetExtensionExtension" target */,
+			);
+			path = DailyTasksWidgetExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -55,13 +108,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4D9CB89D2F8DA9CB00F536E1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4D9CB8A52F8DA9CB00F536E1 /* SwiftUI.framework in Frameworks */,
+				4D9CB8A32F8DA9CB00F536E1 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		4D9CB7FC2F8C41AC00F536E1 = {
 			isa = PBXGroup;
 			children = (
+				4D9CB8BB2F8DAA9400F536E1 /* DailyTasksWidgetExtensionExtension.entitlements */,
 				4D9CB80D2F8C41AC00F536E1 /* DailyTasks Watch App */,
+				4D9CB8A62F8DA9CB00F536E1 /* DailyTasksWidgetExtension */,
+				4D9CB8A12F8DA9CB00F536E1 /* Frameworks */,
 				4D9CB8042F8C41AC00F536E1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -71,8 +136,18 @@
 			children = (
 				4D9CB8032F8C41AC00F536E1 /* DailyTasks.app */,
 				4D9CB8092F8C41AC00F536E1 /* DailyTasks Watch App.app */,
+				4D9CB8A02F8DA9CB00F536E1 /* DailyTasksWidgetExtensionExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		4D9CB8A12F8DA9CB00F536E1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4D9CB8A22F8DA9CB00F536E1 /* WidgetKit.framework */,
+				4D9CB8A42F8DA9CB00F536E1 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -104,10 +179,12 @@
 				4D9CB8052F8C41AC00F536E1 /* Sources */,
 				4D9CB8062F8C41AC00F536E1 /* Frameworks */,
 				4D9CB8072F8C41AC00F536E1 /* Resources */,
+				4D9CB8B92F8DA9CD00F536E1 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				4D9CB8B32F8DA9CD00F536E1 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				4D9CB80D2F8C41AC00F536E1 /* DailyTasks Watch App */,
@@ -118,6 +195,28 @@
 			productName = "DailyTasks Watch App";
 			productReference = 4D9CB8092F8C41AC00F536E1 /* DailyTasks Watch App.app */;
 			productType = "com.apple.product-type.application";
+		};
+		4D9CB89F2F8DA9CB00F536E1 /* DailyTasksWidgetExtensionExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4D9CB8B62F8DA9CD00F536E1 /* Build configuration list for PBXNativeTarget "DailyTasksWidgetExtensionExtension" */;
+			buildPhases = (
+				4D9CB89C2F8DA9CB00F536E1 /* Sources */,
+				4D9CB89D2F8DA9CB00F536E1 /* Frameworks */,
+				4D9CB89E2F8DA9CB00F536E1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4D9CB8A62F8DA9CB00F536E1 /* DailyTasksWidgetExtension */,
+			);
+			name = DailyTasksWidgetExtensionExtension;
+			packageProductDependencies = (
+			);
+			productName = DailyTasksWidgetExtensionExtension;
+			productReference = 4D9CB8A02F8DA9CB00F536E1 /* DailyTasksWidgetExtensionExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -133,6 +232,9 @@
 						CreatedOnToolsVersion = 26.4;
 					};
 					4D9CB8082F8C41AC00F536E1 = {
+						CreatedOnToolsVersion = 26.4;
+					};
+					4D9CB89F2F8DA9CB00F536E1 = {
 						CreatedOnToolsVersion = 26.4;
 					};
 				};
@@ -153,6 +255,7 @@
 			targets = (
 				4D9CB8022F8C41AC00F536E1 /* DailyTasks */,
 				4D9CB8082F8C41AC00F536E1 /* DailyTasks Watch App */,
+				4D9CB89F2F8DA9CB00F536E1 /* DailyTasksWidgetExtensionExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -172,10 +275,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4D9CB89E2F8DA9CB00F536E1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4D9CB8052F8C41AC00F536E1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4D9CB89C2F8DA9CB00F536E1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -189,6 +306,11 @@
 			isa = PBXTargetDependency;
 			target = 4D9CB8082F8C41AC00F536E1 /* DailyTasks Watch App */;
 			targetProxy = 4D9CB80B2F8C41AC00F536E1 /* PBXContainerItemProxy */;
+		};
+		4D9CB8B32F8DA9CD00F536E1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4D9CB89F2F8DA9CB00F536E1 /* DailyTasksWidgetExtensionExtension */;
+			targetProxy = 4D9CB8B22F8DA9CD00F536E1 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -314,6 +436,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "DailyTasks Watch App/DailyTasks Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T64WR5HWCN;
@@ -338,7 +461,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
 		};
@@ -347,6 +470,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "DailyTasks Watch App/DailyTasks Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T64WR5HWCN;
@@ -372,7 +496,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
 				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
 		};
@@ -411,6 +535,75 @@
 			};
 			name = Release;
 		};
+		4D9CB8B72F8DA9CD00F536E1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = DailyTasksWidgetExtensionExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T64WR5HWCN;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DailyTasksWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DailyTasksWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.spencerdearman.DailyTasks.watchkitapp.DailyTasksWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		4D9CB8B82F8DA9CD00F536E1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = DailyTasksWidgetExtensionExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T64WR5HWCN;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DailyTasksWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DailyTasksWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.spencerdearman.DailyTasks.watchkitapp.DailyTasksWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -437,6 +630,15 @@
 			buildConfigurations = (
 				4D9CB81B2F8C41AD00F536E1 /* Debug */,
 				4D9CB81C2F8C41AD00F536E1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4D9CB8B62F8DA9CD00F536E1 /* Build configuration list for PBXNativeTarget "DailyTasksWidgetExtensionExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4D9CB8B72F8DA9CD00F536E1 /* Debug */,
+				4D9CB8B82F8DA9CD00F536E1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

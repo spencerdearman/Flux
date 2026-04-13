@@ -78,13 +78,26 @@ struct TaskListView: View {
             }
             .onAppear {
                 seedDefaultTasks()
+                refreshWidget()
             }
             .onChange(of: scenePhase) { oldPhase, newPhase in
                 if newPhase == .active {
                     dailyReset()
+                    refreshWidget()
                 }
             }
+            .onChange(of: tasks.map { $0.isCompleted }) { _, _ in
+                refreshWidget()
+            }
+            .onChange(of: tasks.count) { _, _ in
+                refreshWidget()
+            }
         }
+    }
+
+    private func refreshWidget() {
+        let completed = tasks.filter(\.isCompleted).count
+        WidgetDataManager.shared.updateWidgetData(completed: completed, total: tasks.count)
     }
     
     // MARK: - Logic Functions
