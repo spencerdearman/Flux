@@ -15,31 +15,33 @@ struct StreakView: View {
     @State var test: Bool = true
     
     var body: some View {
-        VStack(spacing: 8) {
-            HStack(alignment: .lastTextBaseline) {
-                Text("\(currentStreak)")
-                    .font(.system(size: 60))
-                    .fontWeight(.bold)
-                Text("days")
-                    .font(.subheadline)
+        NavigationStack {
+            VStack(spacing: 8) {
+                HStack(alignment: .lastTextBaseline) {
+                    Text("\(currentStreak)")
+                        .font(.system(size: 60))
+                        .fontWeight(.bold)
+                    Text("days")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Text("all tasks completed")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
-            }
-            Text("all tasks completed")
+                
+                HStack {
+                    Image(systemName: "trophy.fill")
+                        .foregroundStyle(.accent)
+                    Text("Best: \(bestStreak)")
+                }
                 .font(.caption)
-                .foregroundStyle(.secondary)
-            
-            HStack {
-                Image(systemName: "trophy.fill")
-                    .foregroundStyle(.accent)
-                Text("Best: \(bestStreak)")
             }
-            .font(.caption)
-        }
-        .navigationTitle("Streak")
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                ShareLink(item: "Check out my \(currentStreak) day task streak!") {
-                    Label("Share", systemImage: "square.and.arrow.up")
+            .navigationTitle("Streak")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(item: "Check out my \(currentStreak) day task streak!") {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
                 }
             }
         }

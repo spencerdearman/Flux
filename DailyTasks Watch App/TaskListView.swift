@@ -24,63 +24,65 @@ struct TaskListView: View {
     @State private var newTaskTitle = ""
     
     var body: some View {
-        List {
-            ForEach(tasks) { task in
-                TaskRow(task: task)
-                    .listRowBackground(
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(Color(white: 0.15))
-                    )
-            }
-            .onDelete(perform: deleteTasks)
-        }
-        .navigationTitle("Tasks")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    isShowingSheet = true
-                } label: {
-                    Label("Add Task", systemImage: "plus")
+        NavigationStack {
+            List {
+                ForEach(tasks) { task in
+                    TaskRow(task: task)
+                        .listRowBackground(
+                            RoundedRectangle(cornerRadius: 24)
+                                .fill(Color(white: 0.15))
+                        )
                 }
+                .onDelete(perform: deleteTasks)
             }
-        }
-        .sheet(isPresented: $isShowingSheet) {
-            NavigationStack {
-                Form {
-                    TextField("Task Title", text: $newTaskTitle)
-                }
-                .navigationTitle("New Task")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button(role: .close) {
-                            isShowingSheet = false
-                            newTaskTitle = ""
-                        } label: {
-                            Label("Cancel", systemImage: "xmark")
-                        }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        let inputEmpty = newTaskTitle.trimmingCharacters(in: .whitespaces).isEmpty
-                        Button(role: .confirm) {
-                            addTask()
-                        } label: {
-                            Label("Save", systemImage: "checkmark")
-                        }
-                        .disabled(inputEmpty)
-                        .tint(inputEmpty ? .clear : .accentColor)
+            .navigationTitle("Tasks")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        isShowingSheet = true
+                    } label: {
+                        Label("Add Task", systemImage: "plus")
                     }
                 }
             }
-            .presentationDetents([.medium])
-        }
-        .onAppear {
-            seedDefaultTasks()
-        }
-        .onChange(of: scenePhase) { oldPhase, newPhase in
-            if newPhase == .active {
-                dailyReset()
+            .sheet(isPresented: $isShowingSheet) {
+                NavigationStack {
+                    Form {
+                        TextField("Task Title", text: $newTaskTitle)
+                    }
+                    .navigationTitle("New Task")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button(role: .close) {
+                                isShowingSheet = false
+                                newTaskTitle = ""
+                            } label: {
+                                Label("Cancel", systemImage: "xmark")
+                            }
+                        }
+                        ToolbarItem(placement: .confirmationAction) {
+                            let inputEmpty = newTaskTitle.trimmingCharacters(in: .whitespaces).isEmpty
+                            Button(role: .confirm) {
+                                addTask()
+                            } label: {
+                                Label("Save", systemImage: "checkmark")
+                            }
+                            .disabled(inputEmpty)
+                            .tint(inputEmpty ? .clear : .accentColor)
+                        }
+                    }
+                }
+                .presentationDetents([.medium])
+            }
+            .onAppear {
+                seedDefaultTasks()
+            }
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                if newPhase == .active {
+                    dailyReset()
+                }
             }
         }
     }

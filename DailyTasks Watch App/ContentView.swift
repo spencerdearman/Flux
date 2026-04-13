@@ -11,7 +11,6 @@ struct ContentView: View {
     @State var selectedTab: Int = 0
     
     var body: some View {
-        NavigationStack {
             TabView(selection: $selectedTab) {
                 Tab("Tasks", systemImage: "checkmark.circle", value: 0) {
                     TaskListView()
@@ -22,10 +21,9 @@ struct ContentView: View {
                 }
                 
                 Tab("Reminder", systemImage: "bell.fill", value: 2) {
-                    TaskListView()
+                    ReminderView()
                 }
             }
-        }
     }
 }
 
