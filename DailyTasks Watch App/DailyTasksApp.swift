@@ -10,7 +10,7 @@ import SwiftData
 
 @main
 struct DailyTasks_Watch_AppApp: App {
-    
+    @WKApplicationDelegateAdaptor(ExtensionDelegate.self) var delegate
     let sharedModelContainer: ModelContainer
     
     init () {
@@ -33,5 +33,8 @@ struct DailyTasks_Watch_AppApp: App {
             ContentView()
         }
         .modelContainer(sharedModelContainer)
+        
+        // TODO: If you end up getting rid of the following line,delete NotificationController as well.
+//        WKNotificationScene(controller: NotificationController.self, category: "dailyReminderCategory")
     }
 }

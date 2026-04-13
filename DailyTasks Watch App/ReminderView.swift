@@ -6,11 +6,19 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 struct ReminderView: View {
-    @State var smartRemindersEnabled: Bool = false
-    @State var dailyRemindersEnabled: Bool = false
-    @State private var selectedTime = Date.now
+    @AppStorage("smartRemindersEnabled") var smartRemindersEnabled: Bool = false
+    @AppStorage("dailyRemindersEnabled") var dailyRemindersEnabled: Bool = false
+    @AppStorage("selectedTimeInterval") private var selectedTimeInterval: TimeInterval = Date.now.timeIntervalSince1970
+    
+    private var selectedTime: Binding<Date> {
+        Binding(
+            get: { Date(timeIntervalSince1970: selectedTimeInterval) },
+            set: { selectedTimeInterval = $0.timeIntervalSince1970 }
+        )
+    }
     
     var body: some View {
         NavigationStack {
@@ -29,22 +37,33 @@ struct ReminderView: View {
                         Text("Daily Reminders")
                     }
                     .tint(.accentColor)
+                    .onChange(of: dailyRemindersEnabled) { _, isEnabled in
+                        if isEnabled {
+                            scheduleDailyReminder(for: selectedTime.wrappedValue)
+                        } else {
+                            cancelDailyReminder()
+                        }
+                    }
                     
                     if dailyRemindersEnabled {
                         NavigationLink {
                             DatePicker(
                                 "Time",
-                                selection: $selectedTime,
+                                selection: selectedTime,
                                 displayedComponents: .hourAndMinute
                             )
                             .datePickerStyle(.wheel)
+                            .labelsHidden()
                             .navigationTitle("Time")
                             .tint(.orange)
+                            .onChange(of: selectedTime.wrappedValue) { _, newTime in
+                                scheduleDailyReminder(for: newTime)
+                            }
                         } label: {
                             HStack {
                                 Text("Select Time")
                                 Spacer()
-                                Text(selectedTime, style: .time)
+                                Text(selectedTime.wrappedValue, style: .time)
                                     .foregroundStyle(.accent)
                             }
                         }
@@ -53,5 +72,33 @@ struct ReminderView: View {
             }
             .navigationTitle("Reminders")
         }
+    }
+    
+    // MARK: - Notification Logic
+    
+    private func scheduleDailyReminder(for date: Date) {
+        let center = UNUserNotificationCenter.current()
+        center.removeAllPendingNotificationRequests()
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Daily Tasks"
+        content.body = "You have tasks waiting to be completed."
+        content.categoryIdentifier = "dailyReminderCategory"
+        content.sound = .default
+        
+        let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+        
+        let request = UNNotificationRequest(identifier: "dailyReminder", content: content, trigger: trigger)
+        
+        center.add(request) { error in
+            if let error = error {
+                print("Error scheduling notification: \(error)")
+            }
+        }
+    }
+    
+    private func cancelDailyReminder() {
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     }
 }
