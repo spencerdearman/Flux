@@ -10,7 +10,11 @@ import SwiftData
 
 struct TaskListView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \DailyTask.createdAt, order: .reverse) private var tasks: [DailyTask]
+    
+    // App storage to persist app terminations
+    @AppStorage("lastResetDate") private var lastResetDateInterval: TimeInterval = Calendar.current.startOfDay(for: .now).timeIntervalSince1970
     
     @State private var isShowingSheet = false
     @State private var newTaskTitle = ""
@@ -71,6 +75,11 @@ struct TaskListView: View {
             .onAppear {
                 seedDefaultTasks()
             }
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                if newPhase == .active {
+                    dailyReset()
+                }
+            }
         }
     }
     
@@ -102,6 +111,26 @@ struct TaskListView: View {
                 modelContext.insert(task)
             }
         }
+    }
+    
+    private func dailyReset() {
+        let lastReset = Date(timeIntervalSince1970: lastResetDateInterval)
+        let today = Calendar.current.startOfDay(for: .now)
+        
+        // Update tasks and streaks for a new day
+        if lastReset < today {
+            for task in tasks {
+                if task.isCompleted {
+                    task.streak += 1
+                } else {
+                    task.streak = 0
+                }
+                task.isCompleted = false
+            }
+        }
+        
+        // Update stored interval to today
+        lastResetDateInterval = today.timeIntervalSince1970
     }
 }
 

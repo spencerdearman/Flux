@@ -10,18 +10,23 @@ import SwiftData
 
 @main
 struct DailyTasks_Watch_AppApp: App {
-    var sharedModelContainer: ModelContainer = {
+    
+    let sharedModelContainer: ModelContainer
+    
+    init () {
         let schema = Schema([
             DailyTask.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+            self.sharedModelContainer = container
+            TaskManager.shared.configure(with: container)
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
-    }()
+    }
 
     var body: some Scene {
         WindowGroup {
