@@ -22,6 +22,7 @@ struct TaskListView: View {
     
     @State private var isShowingSheet = false
     @State private var newTaskTitle = ""
+    @State private var showConfetti = false
     
     var body: some View {
         NavigationStack {
@@ -86,11 +87,30 @@ struct TaskListView: View {
                     refreshWidget()
                 }
             }
-            .onChange(of: tasks.map { $0.isCompleted }) { _, _ in
+            .onChange(of: tasks.map { $0.isCompleted }) { oldValue, newValue in
                 refreshWidget()
+                
+                let wasAllCompleted = !oldValue.isEmpty && oldValue.allSatisfy { $0 }
+                let isAllCompleted = !newValue.isEmpty && newValue.allSatisfy { $0 }
+                
+                if !wasAllCompleted && isAllCompleted {
+                    showConfetti = true
+                    Task {
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        showConfetti = false
+                    }
+                }
             }
             .onChange(of: tasks.count) { _, _ in
                 refreshWidget()
+            }
+            .overlay {
+                if showConfetti {
+                    ConfettiView()
+                }
+            }
+            .sensoryFeedback(.success, trigger: showConfetti) { oldValue, newValue in
+                !oldValue && newValue
             }
         }
     }
