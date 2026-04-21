@@ -1,8 +1,8 @@
 //
 //  TaskListView.swift
-//  DailyTasks
+//  DailyTasks Watch App
 //
-//  Created by Spencer Dearman on 4/12/26.
+//  Created by Spencer Dearman.
 //
 
 import SwiftUI
@@ -12,11 +12,7 @@ struct TaskListView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \DailyTask.createdAt, order: .reverse) private var tasks: [DailyTask]
-    
-    // App storage to persist app terminations
     @AppStorage("lastResetDate") private var lastResetDateInterval: TimeInterval = Calendar.current.startOfDay(for: .now).timeIntervalSince1970
-    
-    // Storing current streak and best streak in App Storage
     @AppStorage("currentStreak") private var currentStreak: Int = 0
     @AppStorage("bestStreak") private var bestStreak: Int = 0
     
@@ -155,14 +151,12 @@ struct TaskListView: View {
                 let remaining = total - completedCount
                 SmartReminderManager.scheduleSmartReminder(total: total, remaining: remaining)
                 updateWalkMonitoring()
-                
-                // Using generic tasks mapped values explicitly works effectively assuming lengths match locally upon changes
                 let wasAllCompleted = !oldValue.isEmpty && oldValue.allSatisfy { $0 }
                 let isAllCompleted = !visibleTasks.isEmpty && visibleTasks.allSatisfy(\.isCompleted)
                 
                 if !wasAllCompleted && isAllCompleted {
                     Task {
-                        try? await Task.sleep(nanoseconds: 600_000_000) // 0.6 second delay
+                        try? await Task.sleep(nanoseconds: 600_000_000)
                         showConfetti = true
                         try? await Task.sleep(nanoseconds: 2_000_000_000)
                         showConfetti = false
@@ -253,8 +247,6 @@ struct TaskListView: View {
         }
     }
     
-    // MARK: - Logic Functions
-    
     private func addTask() {
         let trimmedTitle = newTaskTitle.trimmingCharacters(in: .whitespaces)
         guard !trimmedTitle.isEmpty else { return }
@@ -262,8 +254,6 @@ struct TaskListView: View {
         let newTask = DailyTask(title: trimmedTitle)
         modelContext.insert(newTask)
         saveChanges()
-        
-        // Reset state
         newTaskTitle = ""
         isShowingSheet = false
     }
@@ -288,12 +278,8 @@ struct TaskListView: View {
     private func dailyReset() {
         let lastReset = Date(timeIntervalSince1970: lastResetDateInterval)
         let today = Calendar.current.startOfDay(for: .now)
-        
-        // Update tasks and streaks for a new day
         if lastReset < today {
             WalkDetectionManager.shared.resetForNewDay()
-            
-            // Handle general streak trends (evaluating exactly what was visibly achievable)
             if visibleTasks.allSatisfy(\.isCompleted) && !visibleTasks.isEmpty {
                 currentStreak += 1
                 if currentStreak > bestStreak {
@@ -302,10 +288,7 @@ struct TaskListView: View {
             } else {
                 currentStreak = 0
             }
-            
-            // Handle individual task streaks and completion cleanly skipping heavily hidden tasks indefinitely until revived
             for task in tasks {
-                // Determine if this exact task was forcefully hidden over this window cleanly skipping it visually penalizing
                 let wasHidden = task.hiddenUntil != nil && task.hiddenUntil! > today
                 
                 if !wasHidden {
@@ -315,7 +298,6 @@ struct TaskListView: View {
                         task.streak = 0
                     }
                 } else if let hiddenDate = task.hiddenUntil, hiddenDate <= today {
-                    // Task emerged normally; clears hidden date flag structurally
                     task.hiddenUntil = nil
                 }
                 
@@ -324,8 +306,6 @@ struct TaskListView: View {
 
             saveChanges()
         }
-        
-        // Update stored interval to today
         lastResetDateInterval = today.timeIntervalSince1970
     }
 
@@ -346,7 +326,6 @@ struct TaskRow: View {
     
     var body: some View {
         HStack {
-            // Completed button
             Button {
                 task.isCompleted.toggle()
                 saveChanges()
@@ -356,8 +335,6 @@ struct TaskRow: View {
                     .foregroundStyle(task.isCompleted ? Color.accentColor : Color.gray)
             }
             .buttonStyle(.plain)
-            
-            // Task title
             Text(task.title)
                 .font(.subheadline)
                 .strikethrough(task.isCompleted)

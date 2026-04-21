@@ -1,11 +1,9 @@
 //
 //  SharedWidgetData.swift
-//  DailyTasks
+//  DailyTasks Watch App
 //
-//  Created by Spencer Dearman on 4/13/26.
+//  Created by Spencer Dearman.
 //
-
-// NOTE: Target membership is DailyTasks Watch App + Widget Extension
 
 import Foundation
 

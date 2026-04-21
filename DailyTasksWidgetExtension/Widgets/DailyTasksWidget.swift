@@ -1,28 +1,30 @@
+//
+//  DailyTasksWidget.swift
+//  DailyTasksWidgetExtension
+//
+//  Created by Spencer Dearman.
+//
+
 import WidgetKit
 import SwiftUI
 import AppIntents
 
-// MARK: - 1. App Intent
-// This is the foundation for future user configuration.
-// Add @Parameter properties here later when you want to allow customization.
+// MARK: Intent
 struct DailyTasksIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource = "Configure Tasks"
     static var description = IntentDescription("Select which task data to display.")
-    
-    // Explicit empty initializer required by protocol
     public init() {}
 }
 
-// MARK: - 2. Timeline Entry
+// MARK: Entry
 struct TaskEntry: TimelineEntry {
     let date: Date
     let configuration: DailyTasksIntent
     let taskData: SharedTaskItem
 }
 
-// MARK: - 3. Timeline Provider
+// MARK: Provider
 struct Provider: AppIntentTimelineProvider {
-    // 1. Explicitly map the associated types
     typealias Entry = TaskEntry
     typealias Intent = DailyTasksIntent
     
@@ -46,7 +48,6 @@ struct Provider: AppIntentTimelineProvider {
     }
     
     func recommendations() -> [AppIntentRecommendation<DailyTasksIntent>] {
-        // Provides a default recommendation to the system to satisfy the protocol
         return [AppIntentRecommendation(intent: DailyTasksIntent(), description: "Default")]
     }
     
@@ -60,14 +61,14 @@ struct Provider: AppIntentTimelineProvider {
     }
 }
 
-// MARK: - 4. Entry View
-struct DailyTasksWidgetEntryView : View {
+// MARK: Entry View
+struct DailyTasksWidgetEntryView: View {
     var entry: Provider.Entry
     @Environment(\.widgetFamily) private var family
     
     var body: some View {
         let completed = Double(entry.taskData.completedCount)
-        let total = Double(max(entry.taskData.totalCount, 1)) // Prevent divide by zero
+        let total = Double(max(entry.taskData.totalCount, 1))
         let left = max(0, entry.taskData.totalCount - entry.taskData.completedCount)
         
         switch family {
@@ -112,7 +113,7 @@ struct DailyTasksWidgetEntryView : View {
     }
 }
 
-// MARK: - 5. Widget Configuration
+// MARK: Widget
 struct DailyTasksWidget: Widget {
     let kind: String = "DailyTasksWidget"
     

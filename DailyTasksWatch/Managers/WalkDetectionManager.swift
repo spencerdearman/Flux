@@ -1,3 +1,10 @@
+//
+//  WalkDetectionManager.swift
+//  DailyTasks Watch App
+//
+//  Created by Spencer Dearman.
+//
+
 import Foundation
 import CoreMotion
 import SwiftUI
@@ -26,8 +33,6 @@ class WalkDetectionManager {
         
         activityManager.startActivityUpdates(to: .main) { [weak self] activity in
             guard let self = self, let activity = activity else { return }
-            
-            // Require .medium confidence minimum
             guard activity.confidence == .medium || activity.confidence == .high else { return }
             
             if activity.walking {
@@ -35,7 +40,6 @@ class WalkDetectionManager {
                 if self.walkStartTime == nil {
                     self.walkStartTime = Date()
                 } else if let startTime = self.walkStartTime, Date().timeIntervalSince(startTime) >= 30 {
-                    // Tracked 30s continuous walking
                     self.walkDetected = true
                     self.stopMonitoring()
                 }

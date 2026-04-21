@@ -1,3 +1,10 @@
+//
+//  TaskDetailView.swift
+//  DailyTasks Watch App
+//
+//  Created by Spencer Dearman.
+//
+
 import SwiftUI
 import SwiftData
 
@@ -10,15 +17,12 @@ struct TaskDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 12) {
-                // Centered Title
                 Text(task.title)
                     .font(.title3.bold())
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.top, 4)
-                
-                // Top Action Buttons
                 HStack(spacing: 8) {
                     Button(action: {
                         withAnimation {
@@ -63,11 +67,9 @@ struct TaskDetailView: View {
                     .buttonStyle(.plain)
                 }
                 .padding(.bottom, 6)
-                
-                // Content Card (Notes)
                 VStack(alignment: .leading) {
                     TextField("Add notes...", text: $task.notes, axis: .vertical)
-                        .textFieldStyle(.plain) // Explicitly drop native grey watchOS pill bounding
+                        .textFieldStyle(.plain)
                         .font(.body)
                         .foregroundColor(.primary)
                         .frame(minHeight: 80, alignment: .topLeading)
@@ -92,7 +94,7 @@ struct TaskDetailView: View {
         let calendar = Calendar.current
         if let targetDate = calendar.date(byAdding: .day, value: days, to: calendar.startOfDay(for: .now)) {
             task.hiddenUntil = targetDate
-            task.isCompleted = false // Force reset when actively hiding
+            task.isCompleted = false
             saveChanges()
             dismiss()
         }

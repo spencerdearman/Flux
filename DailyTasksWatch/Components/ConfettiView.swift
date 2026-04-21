@@ -1,3 +1,10 @@
+//
+//  ConfettiView.swift
+//  DailyTasks Watch App
+//
+//  Created by Spencer Dearman.
+//
+
 import SwiftUI
 
 struct ConfettiParticle: Identifiable {

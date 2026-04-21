@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  DailyTasks Watch App
 //
-//  Created by Spencer Dearman on 4/12/26.
+//  Created by Spencer Dearman.
 //
 
 import SwiftUI

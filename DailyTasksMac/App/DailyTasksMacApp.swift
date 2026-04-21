@@ -2,7 +2,7 @@
 //  DailyTasksMacApp.swift
 //  DailyTasksMac
 //
-//  Created by Spencer Dearman on 4/20/26.
+//  Created by Spencer Dearman.
 //
 
 import SwiftUI
@@ -15,9 +15,6 @@ struct DailyTasksMacApp: App {
     
     init() {
         let schema = Schema([DailyTask.self])
-        
-        // Let SwiftData dynamically construct the default secure Mac Sandbox footprint locally
-        // while cleanly leaning onto remote CloudKit syncing to bridge the database!
         let modelConfiguration = ModelConfiguration(
             "DailyTasks",
             schema: schema,

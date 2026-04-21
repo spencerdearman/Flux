@@ -2,11 +2,8 @@
 //  WidgetDataManager.swift
 //  DailyTasks Watch App
 //
-//  Created by Spencer Dearman on 4/13/26.
+//  Created by Spencer Dearman.
 //
-//  NOTE: Lives in the Watch App target. Writes shared task data to the
-//  App Group UserDefaults that the widget timeline provider reads from,
-//  then asks WidgetKit to reload timelines.
 
 import Foundation
 import WidgetKit
@@ -20,7 +17,6 @@ struct WidgetDataManager {
         let data = SharedTaskItem(completedCount: completed, totalCount: total)
         if let encodedData = try? JSONEncoder().encode(data) {
             defaults.set(encodedData, forKey: SharedConstants.tasksKey)
-            // Force timeline refresh
             WidgetCenter.shared.reloadAllTimelines()
         }
     }

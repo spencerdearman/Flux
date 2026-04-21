@@ -1,8 +1,8 @@
 //
 //  ReminderView.swift
-//  DailyTasks
+//  DailyTasks Watch App
 //
-//  Created by Spencer Dearman on 4/13/26.
+//  Created by Spencer Dearman.
 //
 
 import SwiftUI
@@ -73,8 +73,6 @@ struct ReminderView: View {
             .navigationTitle("Reminders")
         }
     }
-    
-    // MARK: - Notification Logic
     
     private func scheduleDailyReminder(for date: Date) {
         let center = UNUserNotificationCenter.current()

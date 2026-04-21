@@ -1,11 +1,16 @@
+//
+//  ContentView.swift
+//  DailyTasksMac
+//
+//  Created by Spencer Dearman.
+//
+
 import SwiftUI
 import SwiftData
 
 struct ContentView: View {
     @Query(sort: \DailyTask.createdAt) private var tasks: [DailyTask]
     @Environment(\.modelContext) private var modelContext
-    
-    // Core filter mapping exactly reflecting watchOS logic
     var visibleTasks: [DailyTask] {
         tasks.filter { task in
             if let hiddenDate = task.hiddenUntil {
@@ -17,15 +22,12 @@ struct ContentView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Elegant Menu Bar Header
             HStack {
                 Text("Daily Tasks")
                     .font(.headline)
                     .fontWeight(.bold)
                 
                 Spacer()
-                
-                // Track current progress dynamically
                 Text("\(visibleTasks.filter(\.isCompleted).count) / \(max(visibleTasks.count, 1))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -38,8 +40,6 @@ struct ContentView: View {
             .background(Material.bar)
             
             Divider()
-            
-            // Read-Only Task Stream
             ScrollView {
                 VStack(spacing: 12) {
                     if visibleTasks.isEmpty {

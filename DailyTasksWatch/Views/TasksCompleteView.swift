@@ -1,10 +1,9 @@
 //
 //  TasksCompleteView.swift
-//  DailyTasks
+//  DailyTasks Watch App
 //
-//  Created by Spencer Dearman on 4/20/26.
+//  Created by Spencer Dearman.
 //
-
 
 import SwiftUI
 import SwiftData
@@ -15,14 +14,11 @@ struct TasksCompleteView: View {
     var body: some View {
         VStack(spacing: 8) {
             ZStack {
-                // Standard 100% ProgressView scaled accurately
                 ProgressView(value: 1.0)
                     .progressViewStyle(.circular)
                     .tint(.accentColor)
                     .glassEffect()
                     .scaleEffect(1.7)
-                
-                // Checkmark
                 Image(systemName: "checkmark")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.white)

@@ -2,7 +2,7 @@
 //  DailyTasksApp.swift
 //  DailyTasksApp
 //
-//  Created by Spencer Dearman on 4/20/26.
+//  Created by Spencer Dearman.
 //
 
 import SwiftUI
@@ -15,9 +15,6 @@ struct DailyTasksApp: App {
     
     init() {
         let schema = Schema([DailyTask.self])
-        
-        // Similar to the Mac app, we let iOS perfectly generate its own isolated sandbox footprint locally
-        // while routing all transactions exclusively through Apple's CloudKit background synchronization servers dynamically!
         let modelConfiguration = ModelConfiguration(
             "DailyTasks",
             schema: schema,

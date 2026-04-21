@@ -1,3 +1,10 @@
+//
+//  ContentView.swift
+//  DailyTasksApp
+//
+//  Created by Spencer Dearman.
+//
+
 import SwiftUI
 import SwiftData
 
@@ -47,7 +54,6 @@ struct ContentView: View {
                                         .tint(.red)
                                     }
                             }
-                            // Purge default iOS list spacing for the glass UI look
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
                             .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
@@ -85,7 +91,7 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Native iOS Task Row
+// MARK: Row
 struct iOS_TaskRow: View {
     @Bindable var task: DailyTask
     @Environment(\.modelContext) private var modelContext
@@ -122,8 +128,6 @@ struct iOS_TaskRow: View {
                 }
                 
                 Spacer()
-                
-                // Streak Logic mirroring Watch formatting
                 if task.streak > 0 {
                     HStack(spacing: 4) {
                         Image(systemName: "flame.fill")
@@ -157,7 +161,7 @@ struct iOS_TaskRow: View {
     }
 }
 
-// MARK: - Native iOS Task Builder
+// MARK: Add Task
 struct iOS_AddTaskView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext

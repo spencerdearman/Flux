@@ -1,3 +1,10 @@
+//
+//  DebugView.swift
+//  DailyTasks Watch App
+//
+//  Created by Spencer Dearman.
+//
+
 import SwiftUI
 
 extension Notification.Name {
