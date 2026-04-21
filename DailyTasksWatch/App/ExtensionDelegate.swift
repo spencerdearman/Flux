@@ -10,6 +10,7 @@ import UserNotifications
 import SwiftData
 
 class ExtensionDelegate: NSObject, WKApplicationDelegate, UNUserNotificationCenterDelegate {
+    private static let cloudKitContainerIdentifier = "iCloud.com.spencerdearman.DailyTasks"
     
     func applicationDidFinishLaunching() {
         let center = UNUserNotificationCenter.current()
@@ -41,8 +42,7 @@ class ExtensionDelegate: NSObject, WKApplicationDelegate, UNUserNotificationCent
         if response.actionIdentifier == "markAllDone" {
             Task { @MainActor in
                 do {
-                    let container = try ModelContainer(for: DailyTask.self)
-                    let context = container.mainContext
+                    let context = try makeModelContext()
                     let tasks = try context.fetch(FetchDescriptor<DailyTask>())
                     
                     for task in tasks {
@@ -64,5 +64,22 @@ class ExtensionDelegate: NSObject, WKApplicationDelegate, UNUserNotificationCent
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         completionHandler([.banner, .sound])
+    }
+
+    @MainActor
+    private func makeModelContext() throws -> ModelContext {
+        if let container = TaskManager.shared.modelContainer {
+            return container.mainContext
+        }
+
+        let schema = Schema([DailyTask.self])
+        let configuration = ModelConfiguration(
+            "DailyTasks",
+            schema: schema,
+            cloudKitDatabase: .private(Self.cloudKitContainerIdentifier)
+        )
+        let container = try ModelContainer(for: schema, configurations: [configuration])
+        TaskManager.shared.configure(with: container)
+        return container.mainContext
     }
 }

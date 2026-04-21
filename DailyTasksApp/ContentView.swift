@@ -40,6 +40,7 @@ struct ContentView: View {
                                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                         Button(role: .destructive) {
                                             modelContext.delete(task)
+                                            saveChanges()
                                         } label: {
                                             Label("Delete", systemImage: "trash")
                                         }
@@ -72,11 +73,22 @@ struct ContentView: View {
         }
         .preferredColorScheme(.dark)
     }
+
+    private func saveChanges() {
+        guard modelContext.hasChanges else { return }
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Failed to save Daily Tasks changes: \(error)")
+        }
+    }
 }
 
 // MARK: - Native iOS Task Row
 struct iOS_TaskRow: View {
     @Bindable var task: DailyTask
+    @Environment(\.modelContext) private var modelContext
     
     var body: some View {
         Button(action: {
@@ -88,6 +100,7 @@ struct iOS_TaskRow: View {
                     task.streak = max(0, task.streak - 1)
                 }
             }
+            saveChanges()
         }) {
             HStack(spacing: 18) {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
@@ -132,6 +145,16 @@ struct iOS_TaskRow: View {
         }
         .buttonStyle(.plain)
     }
+
+    private func saveChanges() {
+        guard modelContext.hasChanges else { return }
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Failed to save Daily Tasks changes: \(error)")
+        }
+    }
 }
 
 // MARK: - Native iOS Task Builder
@@ -170,6 +193,7 @@ struct iOS_AddTaskView: View {
                     Button("Add") {
                         let newTask = DailyTask(title: title, streak: 0, notes: notes)
                         modelContext.insert(newTask)
+                        saveChanges()
                         dismiss()
                     }
                     .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -177,5 +201,15 @@ struct iOS_AddTaskView: View {
             }
         }
         .preferredColorScheme(.dark)
+    }
+
+    private func saveChanges() {
+        guard modelContext.hasChanges else { return }
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Failed to save Daily Tasks changes: \(error)")
+        }
     }
 }

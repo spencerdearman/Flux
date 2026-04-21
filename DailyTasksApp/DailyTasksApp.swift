@@ -10,6 +10,7 @@ import SwiftData
 
 @main
 struct DailyTasksApp: App {
+    private static let cloudKitContainerIdentifier = "iCloud.com.spencerdearman.DailyTasks"
     let sharedModelContainer: ModelContainer
     
     init() {
@@ -17,7 +18,11 @@ struct DailyTasksApp: App {
         
         // Similar to the Mac app, we let iOS perfectly generate its own isolated sandbox footprint locally
         // while routing all transactions exclusively through Apple's CloudKit background synchronization servers dynamically!
-        let modelConfiguration = ModelConfiguration("DailyTasks", schema: schema, cloudKitDatabase: .automatic)
+        let modelConfiguration = ModelConfiguration(
+            "DailyTasks",
+            schema: schema,
+            cloudKitDatabase: .private(Self.cloudKitContainerIdentifier)
+        )
 
         do {
             self.sharedModelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])

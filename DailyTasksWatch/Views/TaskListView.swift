@@ -130,7 +130,6 @@ struct TaskListView: View {
                 .presentationDetents([.medium])
             }
             .onAppear {
-                seedDefaultTasks()
                 refreshWidget()
                 updateWalkMonitoring()
                 
@@ -198,6 +197,7 @@ struct TaskListView: View {
                 Button("Mark Complete") {
                     if let walkTask = tasks.first(where: { $0.title.lowercased().contains("walk") && !$0.isCompleted }) {
                         walkTask.isCompleted = true
+                        saveChanges()
                     }
                 }
                 Button("Cancel", role: .cancel) { }
@@ -261,6 +261,7 @@ struct TaskListView: View {
         
         let newTask = DailyTask(title: trimmedTitle)
         modelContext.insert(newTask)
+        saveChanges()
         
         // Reset state
         newTaskTitle = ""
@@ -269,6 +270,7 @@ struct TaskListView: View {
     
     private func deleteTask(_ task: DailyTask) {
         modelContext.delete(task)
+        saveChanges()
     }
     
     private func seedDefaultTasks() {
@@ -278,6 +280,8 @@ struct TaskListView: View {
                 let task = DailyTask(title: title, streak: 2)
                 modelContext.insert(task)
             }
+
+            saveChanges()
         }
     }
     
@@ -317,21 +321,35 @@ struct TaskListView: View {
                 
                 task.isCompleted = false
             }
+
+            saveChanges()
         }
         
         // Update stored interval to today
         lastResetDateInterval = today.timeIntervalSince1970
     }
+
+    private func saveChanges() {
+        guard modelContext.hasChanges else { return }
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Failed to save Daily Tasks changes: \(error)")
+        }
+    }
 }
 
 struct TaskRow: View {
     @Bindable var task: DailyTask
+    @Environment(\.modelContext) private var modelContext
     
     var body: some View {
         HStack {
             // Completed button
             Button {
                 task.isCompleted.toggle()
+                saveChanges()
             } label: {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
@@ -362,6 +380,16 @@ struct TaskRow: View {
                 .background(Color.accentColor.opacity(0.2))
                 .cornerRadius(20)
             }
+        }
+    }
+
+    private func saveChanges() {
+        guard modelContext.hasChanges else { return }
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Failed to save Daily Tasks changes: \(error)")
         }
     }
 }

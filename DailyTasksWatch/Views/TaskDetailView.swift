@@ -24,6 +24,7 @@ struct TaskDetailView: View {
                         withAnimation {
                             task.isCompleted = true
                         }
+                        saveChanges()
                         dismiss()
                     }) {
                         Image(systemName: "checkmark")
@@ -49,6 +50,7 @@ struct TaskDetailView: View {
                     
                     Button {
                         modelContext.delete(task)
+                        saveChanges()
                         dismiss()
                     } label: {
                         Image(systemName: "trash")
@@ -75,6 +77,9 @@ struct TaskDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .onDisappear {
+            saveChanges()
+        }
         .confirmationDialog("Push Task To...", isPresented: $showingPushOptions, titleVisibility: .visible) {
             Button("Tomorrow") { pushTask(days: 1) }
             Button("In 3 Days") { pushTask(days: 3) }
@@ -88,7 +93,18 @@ struct TaskDetailView: View {
         if let targetDate = calendar.date(byAdding: .day, value: days, to: calendar.startOfDay(for: .now)) {
             task.hiddenUntil = targetDate
             task.isCompleted = false // Force reset when actively hiding
+            saveChanges()
             dismiss()
+        }
+    }
+
+    private func saveChanges() {
+        guard modelContext.hasChanges else { return }
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Failed to save Daily Tasks changes: \(error)")
         }
     }
 }

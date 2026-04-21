@@ -49,36 +49,41 @@ struct ContentView: View {
                             .padding(.top, 40)
                     } else {
                         ForEach(visibleTasks) { task in
-                            HStack {
-                                Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                                    .foregroundStyle(task.isCompleted ? Color.accentColor : .gray)
-                                    .font(.title3)
-                                
-                                Text(task.title)
-                                    .font(.body)
-                                    .strikethrough(task.isCompleted)
-                                    .foregroundStyle(task.isCompleted ? .secondary : .primary)
-                                
-                                Spacer()
-                                
-                                if task.streak > 0 {
-                                    HStack(spacing: 2) {
-                                        Image(systemName: "flame.fill")
-                                            .font(.caption2)
-                                        Text("\(task.streak)")
-                                            .font(.caption)
-                                            .fontWeight(.bold)
+                            Button {
+                                toggleTask(task)
+                            } label: {
+                                HStack {
+                                    Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                                        .foregroundStyle(task.isCompleted ? Color.accentColor : .gray)
+                                        .font(.title3)
+                                    
+                                    Text(task.title)
+                                        .font(.body)
+                                        .strikethrough(task.isCompleted)
+                                        .foregroundStyle(task.isCompleted ? .secondary : .primary)
+                                    
+                                    Spacer()
+                                    
+                                    if task.streak > 0 {
+                                        HStack(spacing: 2) {
+                                            Image(systemName: "flame.fill")
+                                                .font(.caption2)
+                                            Text("\(task.streak)")
+                                                .font(.caption)
+                                                .fontWeight(.bold)
+                                        }
+                                        .foregroundStyle(Color.accentColor)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(Color.accentColor.opacity(0.15))
+                                        .cornerRadius(6)
                                     }
-                                    .foregroundStyle(Color.accentColor)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.accentColor.opacity(0.15))
-                                    .cornerRadius(6)
                                 }
+                                .padding()
+                                .background(Color(NSColor.controlBackgroundColor))
+                                .cornerRadius(12)
                             }
-                            .padding()
-                            .background(Color(NSColor.controlBackgroundColor))
-                            .cornerRadius(12)
+                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -86,5 +91,27 @@ struct ContentView: View {
             }
         }
         .frame(minWidth: 320, minHeight: 450)
+    }
+
+    private func toggleTask(_ task: DailyTask) {
+        task.isCompleted.toggle()
+
+        if task.isCompleted {
+            task.streak += 1
+        } else {
+            task.streak = max(0, task.streak - 1)
+        }
+
+        saveChanges()
+    }
+
+    private func saveChanges() {
+        guard modelContext.hasChanges else { return }
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Failed to save Daily Tasks changes: \(error)")
+        }
     }
 }

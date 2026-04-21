@@ -10,7 +10,7 @@
 		4D058B1F2F970CB40065CADF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4D058B1E2F970CB40065CADF /* AppIcon.icon */; };
 		4D058B202F970CB40065CADF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4D058B1E2F970CB40065CADF /* AppIcon.icon */; };
 		4D058B322F970F920065CADF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4D058B1E2F970CB40065CADF /* AppIcon.icon */; };
-		4D058B482F9714840065CADF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4D058B1E2F970CB40065CADF /* AppIcon.icon */; };
+		4D058B4C2F9725CE0065CADF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4D058B1E2F970CB40065CADF /* AppIcon.icon */; };
 		4D9CB80A2F8C41AC00F536E1 /* DailyTasks Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 4D9CB8092F8C41AC00F536E1 /* DailyTasks Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4D9CB8A32F8DA9CB00F536E1 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D9CB8A22F8DA9CB00F536E1 /* WidgetKit.framework */; };
 		4D9CB8A52F8DA9CB00F536E1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D9CB8A42F8DA9CB00F536E1 /* SwiftUI.framework */; };
@@ -391,7 +391,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4D058B482F9714840065CADF /* AppIcon.icon in Resources */,
+				4D058B4C2F9725CE0065CADF /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

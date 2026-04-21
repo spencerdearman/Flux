@@ -10,6 +10,7 @@ import SwiftData
 
 @main
 struct DailyTasksMacApp: App {
+    private static let cloudKitContainerIdentifier = "iCloud.com.spencerdearman.DailyTasks"
     let sharedModelContainer: ModelContainer
     
     init() {
@@ -17,7 +18,11 @@ struct DailyTasksMacApp: App {
         
         // Let SwiftData dynamically construct the default secure Mac Sandbox footprint locally
         // while cleanly leaning onto remote CloudKit syncing to bridge the database!
-        let modelConfiguration = ModelConfiguration("DailyTasks", schema: schema, cloudKitDatabase: .automatic)
+        let modelConfiguration = ModelConfiguration(
+            "DailyTasks",
+            schema: schema,
+            cloudKitDatabase: .private(Self.cloudKitContainerIdentifier)
+        )
 
         do {
             self.sharedModelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])

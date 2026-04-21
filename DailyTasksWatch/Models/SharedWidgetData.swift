@@ -18,3 +18,4 @@ struct SharedTaskItem: Codable {
     var completedCount: Int
     var totalCount: Int
 }
+
