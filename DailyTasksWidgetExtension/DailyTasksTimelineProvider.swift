@@ -78,7 +78,7 @@ struct DailyTasksWidgetEntryView : View {
                 Text("\(entry.taskData.completedCount)")
             }
             .gaugeStyle(.accessoryCircular)
-            .tint(.indigo)
+            .tint(.accentColor)
             
         case .accessoryRectangular:
             HStack {
@@ -92,22 +92,19 @@ struct DailyTasksWidgetEntryView : View {
                     Text("")
                 }
                 .gaugeStyle(.accessoryCircularCapacity)
-                .tint(.indigo)
+                .tint(.accentColor)
             }
             
         case .accessoryInline:
             Text("\(Image(systemName: "checkmark.circle")) \(entry.taskData.completedCount)/\(entry.taskData.totalCount) TASKS • \(left) LEFT")
             
         case .accessoryCorner:
-            Gauge(value: completed, in: 0...total) {
-                Image(systemName: "checkmark")
-            } currentValueLabel: {
-                Text("\(entry.taskData.completedCount)")
-            }
-            .tint(.indigo)
-            .widgetLabel {
-                Text("\(left) LEFT")
-            }
+            Text("\(left) LEFT")
+                .widgetCurvesContent()
+                .widgetLabel {
+                    ProgressView(value: completed, total: total)
+                        .tint(.accentColor)
+                }
             
         default:
             Text("Unsupported")

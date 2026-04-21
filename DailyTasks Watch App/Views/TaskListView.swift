@@ -25,7 +25,6 @@ struct TaskListView: View {
     @State private var showConfetti = false
     @State private var showingWalkConfirmation = false
     @State private var taskToDelete: DailyTask?
-    @State private var path = NavigationPath()
     
     var walkManager = WalkDetectionManager.shared
     
@@ -43,24 +42,23 @@ struct TaskListView: View {
     }
     
     var body: some View {
-        NavigationStack(path: $path) {
+        NavigationStack {
             Group {
                 if allCompleted {
-                    AllDoneView(totalTasks: visibleTasks.count)
+                    TasksCompleteView(totalTasks: visibleTasks.count)
                         .transition(.scale.combined(with: .opacity))
                 } else {
                     List {
                         Section {
                             ForEach(visibleTasks) { task in
-                                Button {
-                                    path.append(task)
-                                } label: {
+                                NavigationLink(value: task) {
                                     TaskRow(task: task)
                                 }
-                                .buttonStyle(.plain)
-                                .onLongPressGesture {
-                                    taskToDelete = task
-                                }
+                                .simultaneousGesture(
+                                    LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+                                        taskToDelete = task
+                                    }
+                                )
                             }
                         }
                     }
@@ -365,40 +363,5 @@ struct TaskRow: View {
                 .cornerRadius(20)
             }
         }
-    }
-}
-
-struct AllDoneView: View {
-    var totalTasks: Int
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            ZStack {
-                // Standard 100% ProgressView scaled accurately
-                ProgressView(value: 1.0)
-                    .progressViewStyle(.circular)
-                    .tint(.accentColor)
-                    .glassEffect()
-                    .scaleEffect(1.7)
-                
-                // Checkmark
-                Image(systemName: "checkmark")
-                    .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(.white)
-            }
-            .frame(width: 90, height: 90)
-            .border(.blue, width: 2)
-            .padding(6)
-            
-            Text("All Done")
-                .font(.headline)
-                .bold()
-                .foregroundColor(.white)
-            
-            Text("\(totalTasks) tasks completed")
-                .font(.footnote)
-                .foregroundColor(.gray)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
