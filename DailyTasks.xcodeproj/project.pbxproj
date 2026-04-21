@@ -10,6 +10,7 @@
 		4D058B1F2F970CB40065CADF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4D058B1E2F970CB40065CADF /* AppIcon.icon */; };
 		4D058B202F970CB40065CADF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4D058B1E2F970CB40065CADF /* AppIcon.icon */; };
 		4D058B322F970F920065CADF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4D058B1E2F970CB40065CADF /* AppIcon.icon */; };
+		4D058B482F9714840065CADF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4D058B1E2F970CB40065CADF /* AppIcon.icon */; };
 		4D9CB80A2F8C41AC00F536E1 /* DailyTasks Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 4D9CB8092F8C41AC00F536E1 /* DailyTasks Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4D9CB8A32F8DA9CB00F536E1 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D9CB8A22F8DA9CB00F536E1 /* WidgetKit.framework */; };
 		4D9CB8A52F8DA9CB00F536E1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D9CB8A42F8DA9CB00F536E1 /* SwiftUI.framework */; };
@@ -61,6 +62,8 @@
 /* Begin PBXFileReference section */
 		4D058B1E2F970CB40065CADF /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		4D058B252F970F440065CADF /* DailyTasksMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyTasksMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4D058B392F9712AC0065CADF /* DailyTasksApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyTasksApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4D058B492F9719A30065CADF /* DailyTasks-Watch-App-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "DailyTasks-Watch-App-Info.plist"; sourceTree = "<group>"; };
 		4D9CB8032F8C41AC00F536E1 /* DailyTasks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyTasks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D9CB8092F8C41AC00F536E1 /* DailyTasks Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "DailyTasks Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D9CB8A02F8DA9CB00F536E1 /* DailyTasksWidgetExtensionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DailyTasksWidgetExtensionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -70,13 +73,28 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		4D058B312F970F8B0065CADF /* Exceptions for "DailyTasks Watch App" folder in "DailyTasksMac" target */ = {
+		4D058B312F970F8B0065CADF /* Exceptions for "DailyTasksWatch" folder in "DailyTasksMac" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Models/DailyTask.swift,
 				Models/SharedWidgetData.swift,
 			);
 			target = 4D058B242F970F440065CADF /* DailyTasksMac */;
+		};
+		4D058B462F9714720065CADF /* Exceptions for "DailyTasksWatch" folder in "DailyTasksApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/DailyTask.swift,
+				Models/SharedWidgetData.swift,
+			);
+			target = 4D058B382F9712AC0065CADF /* DailyTasksApp */;
+		};
+		4D058B4B2F9719B50065CADF /* Exceptions for "DailyTasksApp" folder in "DailyTasksApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4D058B382F9712AC0065CADF /* DailyTasksApp */;
 		};
 		4D9CB8B52F8DA9CD00F536E1 /* Exceptions for "DailyTasksWidgetExtension" folder in "DailyTasksWidgetExtensionExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -85,7 +103,7 @@
 			);
 			target = 4D9CB89F2F8DA9CB00F536E1 /* DailyTasksWidgetExtensionExtension */;
 		};
-		4D9CB8C02F8DAB1F00F536E1 /* Exceptions for "DailyTasks Watch App" folder in "DailyTasksWidgetExtensionExtension" target */ = {
+		4D9CB8C02F8DAB1F00F536E1 /* Exceptions for "DailyTasksWatch" folder in "DailyTasksWidgetExtensionExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Models/SharedWidgetData.swift,
@@ -100,13 +118,22 @@
 			path = DailyTasksMac;
 			sourceTree = "<group>";
 		};
-		4D9CB80D2F8C41AC00F536E1 /* DailyTasks Watch App */ = {
+		4D058B3A2F9712AC0065CADF /* DailyTasksApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				4D9CB8C02F8DAB1F00F536E1 /* Exceptions for "DailyTasks Watch App" folder in "DailyTasksWidgetExtensionExtension" target */,
-				4D058B312F970F8B0065CADF /* Exceptions for "DailyTasks Watch App" folder in "DailyTasksMac" target */,
+				4D058B4B2F9719B50065CADF /* Exceptions for "DailyTasksApp" folder in "DailyTasksApp" target */,
 			);
-			path = "DailyTasks Watch App";
+			path = DailyTasksApp;
+			sourceTree = "<group>";
+		};
+		4D9CB80D2F8C41AC00F536E1 /* DailyTasksWatch */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4D9CB8C02F8DAB1F00F536E1 /* Exceptions for "DailyTasksWatch" folder in "DailyTasksWidgetExtensionExtension" target */,
+				4D058B312F970F8B0065CADF /* Exceptions for "DailyTasksWatch" folder in "DailyTasksMac" target */,
+				4D058B462F9714720065CADF /* Exceptions for "DailyTasksWatch" folder in "DailyTasksApp" target */,
+			);
+			path = DailyTasksWatch;
 			sourceTree = "<group>";
 		};
 		4D9CB8A62F8DA9CB00F536E1 /* DailyTasksWidgetExtension */ = {
@@ -121,6 +148,13 @@
 
 /* Begin PBXFrameworksBuildPhase section */
 		4D058B222F970F440065CADF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4D058B362F9712AC0065CADF /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -149,10 +183,12 @@
 		4D9CB7FC2F8C41AC00F536E1 = {
 			isa = PBXGroup;
 			children = (
+				4D058B492F9719A30065CADF /* DailyTasks-Watch-App-Info.plist */,
 				4D9CB8BB2F8DAA9400F536E1 /* DailyTasksWidgetExtensionExtension.entitlements */,
-				4D9CB80D2F8C41AC00F536E1 /* DailyTasks Watch App */,
+				4D9CB80D2F8C41AC00F536E1 /* DailyTasksWatch */,
 				4D9CB8A62F8DA9CB00F536E1 /* DailyTasksWidgetExtension */,
 				4D058B262F970F440065CADF /* DailyTasksMac */,
+				4D058B3A2F9712AC0065CADF /* DailyTasksApp */,
 				4D9CB8A12F8DA9CB00F536E1 /* Frameworks */,
 				4D9CB8042F8C41AC00F536E1 /* Products */,
 				4D058B1E2F970CB40065CADF /* AppIcon.icon */,
@@ -166,6 +202,7 @@
 				4D9CB8092F8C41AC00F536E1 /* DailyTasks Watch App.app */,
 				4D9CB8A02F8DA9CB00F536E1 /* DailyTasksWidgetExtensionExtension.appex */,
 				4D058B252F970F440065CADF /* DailyTasksMac.app */,
+				4D058B392F9712AC0065CADF /* DailyTasksApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -204,6 +241,28 @@
 			productReference = 4D058B252F970F440065CADF /* DailyTasksMac.app */;
 			productType = "com.apple.product-type.application";
 		};
+		4D058B382F9712AC0065CADF /* DailyTasksApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4D058B412F9712AD0065CADF /* Build configuration list for PBXNativeTarget "DailyTasksApp" */;
+			buildPhases = (
+				4D058B352F9712AC0065CADF /* Sources */,
+				4D058B362F9712AC0065CADF /* Frameworks */,
+				4D058B372F9712AC0065CADF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4D058B3A2F9712AC0065CADF /* DailyTasksApp */,
+			);
+			name = DailyTasksApp;
+			packageProductDependencies = (
+			);
+			productName = DailyTasksApp;
+			productReference = 4D058B392F9712AC0065CADF /* DailyTasksApp.app */;
+			productType = "com.apple.product-type.application";
+		};
 		4D9CB8022F8C41AC00F536E1 /* DailyTasks */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 4D9CB81A2F8C41AD00F536E1 /* Build configuration list for PBXNativeTarget "DailyTasks" */;
@@ -238,7 +297,7 @@
 				4D9CB8B32F8DA9CD00F536E1 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				4D9CB80D2F8C41AC00F536E1 /* DailyTasks Watch App */,
+				4D9CB80D2F8C41AC00F536E1 /* DailyTasksWatch */,
 			);
 			name = "DailyTasks Watch App";
 			packageProductDependencies = (
@@ -282,6 +341,9 @@
 					4D058B242F970F440065CADF = {
 						CreatedOnToolsVersion = 26.4.1;
 					};
+					4D058B382F9712AC0065CADF = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
 					4D9CB8022F8C41AC00F536E1 = {
 						CreatedOnToolsVersion = 26.4;
 					};
@@ -311,6 +373,7 @@
 				4D9CB8082F8C41AC00F536E1 /* DailyTasks Watch App */,
 				4D9CB89F2F8DA9CB00F536E1 /* DailyTasksWidgetExtensionExtension */,
 				4D058B242F970F440065CADF /* DailyTasksMac */,
+				4D058B382F9712AC0065CADF /* DailyTasksApp */,
 			);
 		};
 /* End PBXProject section */
@@ -321,6 +384,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				4D058B322F970F920065CADF /* AppIcon.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4D058B372F9712AC0065CADF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4D058B482F9714840065CADF /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -351,6 +422,13 @@
 
 /* Begin PBXSourcesBuildPhase section */
 		4D058B212F970F440065CADF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4D058B352F9712AC0065CADF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -454,6 +532,79 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		4D058B422F9712AD0065CADF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DailyTasksApp/DailyTasksApp.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T64WR5HWCN;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DailyTasksApp/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.spencerdearman.DailyTasksApp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4D058B432F9712AD0065CADF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DailyTasksApp/DailyTasksApp.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T64WR5HWCN;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DailyTasksApp/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.spencerdearman.DailyTasksApp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -578,12 +729,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "DailyTasks Watch App/DailyTasks Watch App.entitlements";
+				CODE_SIGN_ENTITLEMENTS = DailyTasksWatch/DailyTasksWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T64WR5HWCN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "DailyTasks-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = DailyTasks;
 				INFOPLIST_KEY_NSMotionUsageDescription = "We need motion data to track your daily walks automatically.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
@@ -613,12 +765,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "DailyTasks Watch App/DailyTasks Watch App.entitlements";
+				CODE_SIGN_ENTITLEMENTS = DailyTasksWatch/DailyTasksWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T64WR5HWCN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "DailyTasks-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = DailyTasks;
 				INFOPLIST_KEY_NSMotionUsageDescription = "We need motion data to track your daily walks automatically.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
@@ -756,6 +909,15 @@
 			buildConfigurations = (
 				4D058B2E2F970F460065CADF /* Debug */,
 				4D058B2F2F970F460065CADF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4D058B412F9712AD0065CADF /* Build configuration list for PBXNativeTarget "DailyTasksApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4D058B422F9712AD0065CADF /* Debug */,
+				4D058B432F9712AD0065CADF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
