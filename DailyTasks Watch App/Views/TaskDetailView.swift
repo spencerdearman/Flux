@@ -1,13 +1,23 @@
 import SwiftUI
+import SwiftData
 
 struct TaskDetailView: View {
     @Bindable var task: DailyTask
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     @State private var showingPushOptions = false
     
     var body: some View {
         ScrollView {
             VStack(spacing: 12) {
+                // Centered Title
+                Text(task.title)
+                    .font(.title3.bold())
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 4)
+                
                 // Top Action Buttons
                 HStack(spacing: 8) {
                     Button(action: {
@@ -17,11 +27,11 @@ struct TaskDetailView: View {
                         dismiss()
                     }) {
                         Image(systemName: "checkmark")
-                            .font(.title2.bold())
+                            .font(.title3.bold())
                             .foregroundColor(.green)
-                            .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(Color.green.opacity(0.2))
-                            .cornerRadius(12)
+                            .frame(width: 48, height: 48)
+                            .glassEffect()
+                            .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
                     
@@ -29,32 +39,39 @@ struct TaskDetailView: View {
                         showingPushOptions = true
                     } label: {
                         Image(systemName: "arrow.turn.up.right")
-                            .font(.title2.bold())
+                            .font(.title3.bold())
                             .foregroundColor(.blue)
-                            .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(Color.blue.opacity(0.2))
-                            .cornerRadius(12)
+                            .frame(width: 48, height: 48)
+                            .glassEffect()
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Button {
+                        modelContext.delete(task)
+                        dismiss()
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.title3.bold())
+                            .foregroundColor(.red)
+                            .frame(width: 48, height: 48)
+                            .glassEffect()
+                            .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
                 }
                 .padding(.bottom, 6)
                 
-                // Content Card
-                VStack(alignment: .leading, spacing: 6) {
-                    TextField("Title", text: $task.title)
-                        .font(.headline)
-                        .foregroundColor(.black)
-                        .padding(.vertical, 2)
-                        
-                    TextField("Notes...", text: $task.notes, axis: .vertical)
+                // Content Card (Notes)
+                VStack(alignment: .leading) {
+                    TextField("Add notes...", text: $task.notes, axis: .vertical)
+                        .textFieldStyle(.plain) // Explicitly drop native grey watchOS pill bounding
                         .font(.body)
-                        .foregroundColor(Color(white: 0.3)) // Dark gray
-                        .frame(minHeight: 120, alignment: .topLeading)
+                        .foregroundColor(.primary)
+                        .frame(minHeight: 80, alignment: .topLeading)
                 }
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.white)
-                .cornerRadius(16)
+                .padding()
+                .background(.ultraThinMaterial, in: .rect(cornerRadius: 16))
             }
         }
         .navigationBarTitleDisplayMode(.inline)

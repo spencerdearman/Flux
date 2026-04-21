@@ -68,6 +68,7 @@ struct DailyTasksWidgetEntryView : View {
     var body: some View {
         let completed = Double(entry.taskData.completedCount)
         let total = Double(max(entry.taskData.totalCount, 1)) // Prevent divide by zero
+        let left = max(0, entry.taskData.totalCount - entry.taskData.completedCount)
         
         switch family {
         case .accessoryCircular:
@@ -77,6 +78,7 @@ struct DailyTasksWidgetEntryView : View {
                 Text("\(entry.taskData.completedCount)")
             }
             .gaugeStyle(.accessoryCircular)
+            .tint(.indigo)
             
         case .accessoryRectangular:
             HStack {
@@ -90,18 +92,22 @@ struct DailyTasksWidgetEntryView : View {
                     Text("")
                 }
                 .gaugeStyle(.accessoryCircularCapacity)
+                .tint(.indigo)
             }
             
         case .accessoryInline:
-            Text("\(Image(systemName: "checkmark.circle")) \(entry.taskData.completedCount)/\(entry.taskData.totalCount) Done")
+            Text("\(Image(systemName: "checkmark.circle")) \(entry.taskData.completedCount)/\(entry.taskData.totalCount) TASKS • \(left) LEFT")
             
         case .accessoryCorner:
-            Text("\(entry.taskData.completedCount)")
-                .widgetLabel {
-                    Gauge(value: completed, in: 0...total) {
-                        Text("Tasks")
-                    }
-                }
+            Gauge(value: completed, in: 0...total) {
+                Image(systemName: "checkmark")
+            } currentValueLabel: {
+                Text("\(entry.taskData.completedCount)")
+            }
+            .tint(.indigo)
+            .widgetLabel {
+                Text("\(left) LEFT")
+            }
             
         default:
             Text("Unsupported")

@@ -24,6 +24,9 @@ struct TaskListView: View {
     @State private var newTaskTitle = ""
     @State private var showConfetti = false
     @State private var showingWalkConfirmation = false
+    @State private var taskToDelete: DailyTask?
+    @State private var path = NavigationPath()
+    
     var walkManager = WalkDetectionManager.shared
     
     private var visibleTasks: [DailyTask] {
@@ -40,20 +43,25 @@ struct TaskListView: View {
     }
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             Group {
                 if allCompleted {
-                    AllDoneView(totalTasks: tasks.count)
+                    AllDoneView(totalTasks: visibleTasks.count)
                         .transition(.scale.combined(with: .opacity))
                 } else {
                     List {
                         Section {
                             ForEach(visibleTasks) { task in
-                                NavigationLink(value: task) {
+                                Button {
+                                    path.append(task)
+                                } label: {
                                     TaskRow(task: task)
                                 }
+                                .buttonStyle(.plain)
+                                .onLongPressGesture {
+                                    taskToDelete = task
+                                }
                             }
-                            .onDelete(perform: deleteTasks)
                         }
                     }
                 }
@@ -65,20 +73,18 @@ struct TaskListView: View {
                 if !allCompleted {
                     ToolbarItem(placement: .topBarLeading) {
                         ZStack {
-                            Circle()
-                                .glassEffect(.regular.tint(.blue).interactive())
-                            
                             ProgressView(
-                                value: Double(tasks.filter(\.isCompleted).count),
-                                total: Double(max(1, tasks.count))
+                                value: Double(visibleTasks.filter(\.isCompleted).count),
+                                total: Double(max(1, visibleTasks.count))
                             )
                             .progressViewStyle(.circular)
-                            .glassEffect(.regular.tint(.blue).interactive())
-//                            .tint(.blue)
-                            .animation(.spring(response: 0.5, dampingFraction: 0.8), value: tasks.filter(\.isCompleted).count)
+                            .tint(.accentColor)
+                            .glassEffect()
+                            .animation(.spring(response: 0.5, dampingFraction: 0.8), value: visibleTasks.filter(\.isCompleted).count)
                             
-                            Text("\(tasks.filter(\.isCompleted).count)")
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            Text("\(visibleTasks.filter(\.isCompleted).count)")
+                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                                .foregroundColor(.accentColor)
                         }
                         .frame(width: 34, height: 34)
                     }
@@ -200,27 +206,41 @@ struct TaskListView: View {
             } message: {
                 Text("We noticed you've been walking. Mark your walk task as complete?")
             }
+            .confirmationDialog("Delete Task?", 
+                isPresented: Binding(
+                    get: { taskToDelete != nil },
+                    set: { if !$0 { taskToDelete = nil } }
+                ), 
+                titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive) {
+                    if let task = taskToDelete {
+                        deleteTask(task)
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
+            }
             .onReceive(NotificationCenter.default.publisher(for: .testNotification)) { _ in
-                #if DEBUG
+#if DEBUG
                 let remaining = tasks.filter { !$0.isCompleted }.count
                 SmartReminderManager.scheduleSmartReminder(total: tasks.count, remaining: remaining)
-                #endif
+#endif
             }
             .onReceive(NotificationCenter.default.publisher(for: .testWalkSimulation)) { _ in
-                #if DEBUG
+#if DEBUG
                 walkManager.simulateWalkDetected()
-                #endif
+#endif
             }
             .onReceive(NotificationCenter.default.publisher(for: .testMidnightReset)) { _ in
-                #if DEBUG
+#if DEBUG
                 lastResetDateInterval = Date().addingTimeInterval(-86400 * 2).timeIntervalSince1970
                 dailyReset()
                 refreshWidget()
-                #endif
+#endif
             }
         }
     }
-
+    
     private func refreshWidget() {
         let completed = visibleTasks.filter(\.isCompleted).count
         WidgetDataManager.shared.updateWidgetData(completed: completed, total: visibleTasks.count)
@@ -249,10 +269,8 @@ struct TaskListView: View {
         isShowingSheet = false
     }
     
-    private func deleteTasks(at offsets: IndexSet) {
-        for index in offsets {
-            modelContext.delete(tasks[index])
-        }
+    private func deleteTask(_ task: DailyTask) {
+        modelContext.delete(task)
     }
     
     private func seedDefaultTasks() {
@@ -294,7 +312,7 @@ struct TaskListView: View {
                     } else {
                         task.streak = 0
                     }
-                } else if var hiddenDate = task.hiddenUntil, hiddenDate <= today {
+                } else if let hiddenDate = task.hiddenUntil, hiddenDate <= today {
                     // Task emerged normally; clears hidden date flag structurally
                     task.hiddenUntil = nil
                 }
@@ -319,7 +337,7 @@ struct TaskRow: View {
             } label: {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
-                    .foregroundStyle(task.isCompleted ? .green : .gray)
+                    .foregroundStyle(task.isCompleted ? Color.accentColor : Color.gray)
             }
             .buttonStyle(.plain)
             
@@ -335,15 +353,15 @@ struct TaskRow: View {
                 HStack (spacing: 2) {
                     Image(systemName: "flame.fill")
                         .font(.system(size: 10))
-                        .foregroundColor(.orange)
+                        .foregroundColor(.accentColor)
                     Text(String(task.streak))
                         .fontWeight(.semibold)
                         .font(.system(size: 12))
-                        .foregroundColor(.orange)
+                        .foregroundColor(.accentColor)
                 }
                 .padding(.horizontal, 5)
                 .padding(.vertical, 2)
-                .background(.orange.opacity(0.2))
+                .background(Color.accentColor.opacity(0.2))
                 .cornerRadius(20)
             }
         }
@@ -356,34 +374,28 @@ struct AllDoneView: View {
     var body: some View {
         VStack(spacing: 8) {
             ZStack {
-                // Background dark circle
-                Circle()
-                    .fill(Color(white: 0.15))
-                    .frame(width: 76, height: 76)
-                
-                // Inner dark blue track
-                Circle()
-                    .stroke(Color.blue.opacity(0.3), lineWidth: 10)
-                    .frame(width: 76, height: 76)
-                
-                // Completed solid light blue ring
-                Circle()
-                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                    .frame(width: 76, height: 76)
+                // Standard 100% ProgressView scaled accurately
+                ProgressView(value: 1.0)
+                    .progressViewStyle(.circular)
+                    .tint(.accentColor)
+                    .glassEffect()
+                    .scaleEffect(1.7)
                 
                 // Checkmark
                 Image(systemName: "checkmark")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.white)
             }
-            .padding(.bottom, 6)
+            .frame(width: 90, height: 90)
+            .border(.blue, width: 2)
+            .padding(6)
             
             Text("All Done")
                 .font(.headline)
                 .bold()
                 .foregroundColor(.white)
             
-            Text("\(totalTasks) to-dos completed")
+            Text("\(totalTasks) tasks completed")
                 .font(.footnote)
                 .foregroundColor(.gray)
         }

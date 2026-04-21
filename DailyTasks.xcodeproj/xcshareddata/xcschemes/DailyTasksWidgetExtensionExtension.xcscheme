@@ -76,12 +76,21 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
+            BlueprintIdentifier = "4D9CB89F2F8DA9CB00F536E1"
+            BuildableName = "DailyTasksWidgetExtensionExtension.appex"
+            BlueprintName = "DailyTasksWidgetExtensionExtension"
+            ReferencedContainer = "container:DailyTasks.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
             BlueprintIdentifier = "4D9CB8082F8C41AC00F536E1"
             BuildableName = "DailyTasks Watch App.app"
             BlueprintName = "DailyTasks Watch App"
             ReferencedContainer = "container:DailyTasks.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "_XCWidgetKind"
