@@ -945,7 +945,6 @@ private struct FluxTaskRow: View {
     @State private var showCalendarPopover = false
     @State private var showDeadlinePopover = false
     @State private var newSubtaskTitle = ""
-    @State private var isEditingNotes = false
     @State private var notesExpanded = false
 
     private var isDone: Bool { isCompleting || task.isCompleted }
@@ -1101,60 +1100,63 @@ private struct FluxTaskRow: View {
             }
 
             // Notes
-            if isEditingNotes {
-                TextEditor(text: Binding(
-                    get: { task.notes },
-                    set: {
-                        task.notes = $0
-                        task.updatedAt = .now
-                        try? modelContext.save()
+            VStack(alignment: .leading, spacing: 2) {
+                ZStack(alignment: .topLeading) {
+                    // Placeholder
+                    if task.notes.isEmpty {
+                        Text("Notes")
+                            .font(.subheadline)
+                            .foregroundStyle(.tertiary)
+                            .padding(.top, 8)
+                            .padding(.leading, 5)
+                            .allowsHitTesting(false)
                     }
-                ))
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .scrollContentBackground(.hidden)
-                .scrollDisabled(true)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(minHeight: 30)
-                .padding(.horizontal, 56)
-                .onExitCommand {
-                    isEditingNotes = false
-                }
-            } else if task.notes.isEmpty {
-                Text("Notes")
-                    .font(.subheadline)
-                    .foregroundStyle(.tertiary)
-                    .padding(.horizontal, 61)
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
-                    .onTapGesture { isEditingNotes = true }
-            } else {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(task.notes)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(notesExpanded ? nil : 3)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
-                        .onTapGesture { isEditingNotes = true }
 
-                    if task.notes.count > 120 {
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                notesExpanded.toggle()
-                            }
-                        } label: {
-                            Text(notesExpanded ? "Show less" : "Show more")
-                                .font(.caption.weight(.medium))
-                                .foregroundStyle(.blue)
+                    // Always use TextEditor for zero-shift editing
+                    TextEditor(text: Binding(
+                        get: { task.notes },
+                        set: {
+                            task.notes = $0
+                            task.updatedAt = .now
+                            try? modelContext.save()
                         }
-                        .buttonStyle(.plain)
-                    }
+                    ))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .scrollContentBackground(.hidden)
+                    .scrollDisabled(true)
+                    .frame(minHeight: 30, maxHeight: notesExpanded ? .infinity : 72)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .clipped()
                 }
-                .padding(.horizontal, 56)
-                .padding(.vertical, 4)
+
+                if task.notes.count > 100 && !notesExpanded {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            notesExpanded = true
+                        }
+                    } label: {
+                        Text("Show more")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.blue)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, 5)
+                } else if notesExpanded && task.notes.count > 100 {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            notesExpanded = false
+                        }
+                    } label: {
+                        Text("Show less")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.blue)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, 5)
+                }
             }
+            .padding(.horizontal, 56)
 
             // Subtasks section
             if !task.checklist.isEmpty || activeAction == .subtasks {
@@ -1608,17 +1610,17 @@ private struct FluxCalendarGrid: View {
     }
 
     private var daysInGrid: [Date?] {
-        let comps = calendar.dateComponents([.year, .month], from: displayedMonth)
+        var comps = calendar.dateComponents([.year, .month], from: displayedMonth)
+        comps.day = 1
         guard let firstOfMonth = calendar.date(from: comps),
               let range = calendar.range(of: .day, in: .month, for: firstOfMonth) else { return [] }
 
         let weekdayOfFirst = calendar.component(.weekday, from: firstOfMonth)
-        let leadingBlanks = weekdayOfFirst - calendar.firstWeekday
-        let adjustedBlanks = (leadingBlanks + 7) % 7
+        let leadingBlanks = (weekdayOfFirst - calendar.firstWeekday + 7) % 7
 
-        var days: [Date?] = Array(repeating: nil, count: adjustedBlanks)
-        for day in range {
-            if let date = calendar.date(bySetting: .day, value: day, of: firstOfMonth) {
+        var days: [Date?] = Array(repeating: nil, count: leadingBlanks)
+        for dayOffset in 0..<range.count {
+            if let date = calendar.date(byAdding: .day, value: dayOffset, to: firstOfMonth) {
                 days.append(date)
             }
         }
@@ -1705,9 +1707,7 @@ private struct FluxCalendarGrid: View {
 
     private func shiftMonth(_ delta: Int) {
         if let newMonth = calendar.date(byAdding: .month, value: delta, to: displayedMonth) {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                displayedMonth = newMonth
-            }
+            displayedMonth = newMonth
         }
     }
 }
