@@ -91,26 +91,8 @@ struct ContentView: View {
 
             Section("Areas") {
                 ForEach(filteredAreas) { area in
-                    DisclosureGroup {
-                        ForEach(filteredProjects(in: area)) { project in
-                            NavigationLink(value: FluxSidebarSelection.project(project.id)) {
-                                HStack(spacing: 10) {
-                                    Image(systemName: "paperplane")
-                                    Text(project.title)
-                                        .lineLimit(1)
-                                    Spacer()
-                                    Text("\(project.activeTaskCount)")
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            .onTapGesture(count: 2) {
-                                openWindow(value: project.id)
-                            }
-                            .dropDestination(for: String.self) { items, _ in
-                                _ = reassign(tasks: items, to: project, in: area)
-                            }
-                        }
-                    } label: {
+                    // Area row — tapping navigates to area detail
+                    NavigationLink(value: FluxSidebarSelection.area(area.id)) {
                         HStack(spacing: 10) {
                             Image(systemName: area.symbolName)
                                 .foregroundStyle(Color(hex: area.tintHex))
@@ -122,6 +104,27 @@ struct ContentView: View {
                     }
                     .dropDestination(for: String.self) { items, _ in
                         _ = reassign(tasks: items, to: area)
+                    }
+
+                    // Projects under the area (indented)
+                    ForEach(filteredProjects(in: area)) { project in
+                        NavigationLink(value: FluxSidebarSelection.project(project.id)) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "paperplane")
+                                Text(project.title)
+                                    .lineLimit(1)
+                                Spacer()
+                                Text("\(project.activeTaskCount)")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.leading, 20)
+                        .onTapGesture(count: 2) {
+                            openWindow(value: project.id)
+                        }
+                        .dropDestination(for: String.self) { items, _ in
+                            _ = reassign(tasks: items, to: project, in: area)
+                        }
                     }
                 }
             }
@@ -509,23 +512,102 @@ struct FluxAreaDetailView: View {
     @Binding var expandedTaskID: UUID?
     @Binding var completingTaskIDs: Set<UUID>
 
+    private var looseTasks: [FluxTask] {
+        tasks.filter { $0.project == nil && !$0.isCompleted }
+    }
+
+    private var sortedProjects: [FluxProject] {
+        area.projects.sorted(by: { $0.sortOrder < $1.sortOrder })
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 FluxHeaderCard(title: area.title)
 
-                ForEach(area.projects.sorted(by: { $0.sortOrder < $1.sortOrder })) { project in
-                    FluxProjectCard(project: project)
+                // Loose tasks (not assigned to any project)
+                if !looseTasks.isEmpty {
+                    FluxTaskSection(
+                        title: "Tasks",
+                        tasks: looseTasks,
+                        expandedTaskID: $expandedTaskID,
+                        completingTaskIDs: $completingTaskIDs
+                    ) { task in
+                        if task.isCompleted { task.reopen() } else { task.markComplete() }
+                        try? modelContext.save()
+                    }
                 }
 
-                FluxTaskSection(
-                    title: "Area tasks",
-                    tasks: tasks.filter { $0.project == nil },
-                    expandedTaskID: $expandedTaskID,
-                    completingTaskIDs: $completingTaskIDs
-                ) { task in
-                    if task.isCompleted { task.reopen() } else { task.markComplete() }
-                    try? modelContext.save()
+                // Projects overview
+                if !sortedProjects.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Projects")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(.primary)
+
+                        VStack(spacing: 0) {
+                            ForEach(sortedProjects) { project in
+                                HStack(spacing: 14) {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(project.title)
+                                            .font(.body.weight(.medium))
+                                        if !project.goalSummary.isEmpty {
+                                            Text(project.goalSummary)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                                .lineLimit(1)
+                                        }
+                                    }
+
+                                    Spacer()
+
+                                    // Progress
+                                    HStack(spacing: 8) {
+                                        if !project.tasks.isEmpty {
+                                            Text("\(project.tasks.filter(\.isCompleted).count)/\(project.tasks.count)")
+                                                .font(.caption.weight(.medium))
+                                                .foregroundStyle(.secondary)
+
+                                            ProgressView(value: project.completionRatio)
+                                                .frame(width: 48)
+                                                .tint(Color(hex: project.tintHex))
+                                        }
+
+                                        Text("\(project.activeTaskCount) active")
+                                            .font(.caption.weight(.medium))
+                                            .foregroundStyle(.secondary)
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 3)
+                                            .background(Color.primary.opacity(0.05), in: Capsule())
+                                    }
+                                }
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 14)
+
+                                if project.id != sortedProjects.last?.id {
+                                    Divider()
+                                        .padding(.leading, 18)
+                                }
+                            }
+                        }
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    }
+                }
+
+                // Show tasks in each project
+                ForEach(sortedProjects) { project in
+                    let projectTasks = tasks.filter { $0.project?.id == project.id && !$0.isCompleted }
+                    if !projectTasks.isEmpty {
+                        FluxTaskSection(
+                            title: project.title,
+                            tasks: projectTasks,
+                            expandedTaskID: $expandedTaskID,
+                            completingTaskIDs: $completingTaskIDs
+                        ) { task in
+                            if task.isCompleted { task.reopen() } else { task.markComplete() }
+                            try? modelContext.save()
+                        }
+                    }
                 }
             }
             .padding(28)
@@ -592,28 +674,44 @@ struct FluxProjectDetailView: View {
 
                 ForEach(project.sortedHeadings) { heading in
                     let headingTasks = project.sortedTasks.filter { $0.heading?.id == heading.id }
-                    FluxTaskSection(
-                        title: heading.title,
-                        tasks: headingTasks,
-                        expandedTaskID: $expandedTaskID,
-                        completingTaskIDs: $completingTaskIDs
-                    ) { task in
-                        if task.isCompleted { task.reopen() } else { task.markComplete() }
-                        try? modelContext.save()
+                    VStack(alignment: .leading, spacing: 8) {
+                        FluxTaskSection(
+                            title: heading.title,
+                            tasks: headingTasks,
+                            expandedTaskID: $expandedTaskID,
+                            completingTaskIDs: $completingTaskIDs
+                        ) { task in
+                            if task.isCompleted { task.reopen() } else { task.markComplete() }
+                            try? modelContext.save()
+                        }
+
+                        FluxInlineTaskAdder(
+                            project: project,
+                            area: project.area,
+                            heading: heading
+                        )
                     }
                 }
 
                 let ungroupedTasks = project.sortedTasks.filter { $0.heading == nil }
-                if !ungroupedTasks.isEmpty {
-                    FluxTaskSection(
-                        title: "Tasks",
-                        tasks: ungroupedTasks,
-                        expandedTaskID: $expandedTaskID,
-                        completingTaskIDs: $completingTaskIDs
-                    ) { task in
-                        if task.isCompleted { task.reopen() } else { task.markComplete() }
-                        try? modelContext.save()
+                VStack(alignment: .leading, spacing: 8) {
+                    if !ungroupedTasks.isEmpty {
+                        FluxTaskSection(
+                            title: "Tasks",
+                            tasks: ungroupedTasks,
+                            expandedTaskID: $expandedTaskID,
+                            completingTaskIDs: $completingTaskIDs
+                        ) { task in
+                            if task.isCompleted { task.reopen() } else { task.markComplete() }
+                            try? modelContext.save()
+                        }
                     }
+
+                    FluxInlineTaskAdder(
+                        project: project,
+                        area: project.area,
+                        heading: nil
+                    )
                 }
 
                 // Add heading
@@ -667,6 +765,70 @@ struct FluxProjectDetailView: View {
         try? modelContext.save()
         newHeadingTitle = ""
         showAddHeading = false
+    }
+}
+
+// MARK: - Inline Task Adder
+
+private struct FluxInlineTaskAdder: View {
+    @Environment(\.modelContext) private var modelContext
+    let project: FluxProject
+    let area: FluxArea?
+    let heading: FluxHeading?
+
+    @State private var title = ""
+    @State private var isActive = false
+
+    var body: some View {
+        if isActive {
+            HStack(spacing: 10) {
+                Image(systemName: "circle")
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+
+                TextField("New task…", text: $title)
+                    .textFieldStyle(.plain)
+                    .font(.subheadline)
+                    .onSubmit { addTask() }
+                    .onExitCommand {
+                        isActive = false
+                        title = ""
+                    }
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 8)
+        } else {
+            Button {
+                isActive = true
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 11))
+                    Text("Add Task")
+                        .font(.subheadline.weight(.medium))
+                }
+                .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .padding(.leading, 18)
+        }
+    }
+
+    private func addTask() {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        let task = FluxTask(
+            title: trimmed,
+            isInInbox: false,
+            sortOrder: Double(project.tasks.count),
+            area: area,
+            project: project,
+            heading: heading
+        )
+        modelContext.insert(task)
+        try? modelContext.save()
+        title = ""
     }
 }
 
@@ -780,7 +942,11 @@ private struct FluxTaskRow: View {
 
     @State private var activeAction: TaskActionMode?
     @State private var showTagsPopover = false
+    @State private var showCalendarPopover = false
+    @State private var showDeadlinePopover = false
     @State private var newSubtaskTitle = ""
+    @State private var isEditingNotes = false
+    @State private var notesExpanded = false
 
     private var isDone: Bool { isCompleting || task.isCompleted }
 
@@ -934,17 +1100,8 @@ private struct FluxTaskRow: View {
                 .padding(.bottom, 4)
             }
 
-            // Notes - editable
-            ZStack(alignment: .topLeading) {
-                if task.notes.isEmpty {
-                    Text("Notes")
-                        .font(.subheadline)
-                        .foregroundStyle(.tertiary)
-                        .padding(.top, 8)
-                        .padding(.leading, 5)
-                        .allowsHitTesting(false)
-                }
-
+            // Notes
+            if isEditingNotes {
                 TextEditor(text: Binding(
                     get: { task.notes },
                     set: {
@@ -956,10 +1113,48 @@ private struct FluxTaskRow: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .scrollContentBackground(.hidden)
+                .scrollDisabled(true)
                 .fixedSize(horizontal: false, vertical: true)
-                .frame(minHeight: 36)
+                .frame(minHeight: 30)
+                .padding(.horizontal, 56)
+                .onExitCommand {
+                    isEditingNotes = false
+                }
+            } else if task.notes.isEmpty {
+                Text("Notes")
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+                    .padding(.horizontal, 61)
+                    .padding(.vertical, 8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .onTapGesture { isEditingNotes = true }
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(task.notes)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(notesExpanded ? nil : 3)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                        .onTapGesture { isEditingNotes = true }
+
+                    if task.notes.count > 120 {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                notesExpanded.toggle()
+                            }
+                        } label: {
+                            Text(notesExpanded ? "Show less" : "Show more")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(.blue)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 56)
+                .padding(.vertical, 4)
             }
-            .padding(.horizontal, 56)
 
             // Subtasks section
             if !task.checklist.isEmpty || activeAction == .subtasks {
@@ -1028,18 +1223,45 @@ private struct FluxTaskRow: View {
 
                 Spacer()
 
-                // Date / evening badge
-                dateLabel
-                    .font(.caption.weight(.medium))
+                // Date / evening badge + deadline
+                HStack(spacing: 8) {
+                    dateLabel
+
+                    if let deadline = task.deadline {
+                        HStack(spacing: 3) {
+                            Image(systemName: "flag.fill")
+                                .font(.system(size: 9))
+                            Text(deadline.formatted(.dateTime.month(.abbreviated).day()))
+                        }
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.orange)
+                    }
+                }
+                .font(.caption.weight(.medium))
 
                 Spacer()
                     .frame(maxWidth: 16)
 
                 // Right: action buttons
                 HStack(spacing: 2) {
-                    actionButton(.calendar, icon: "calendar", filledIcon: "calendar.circle.fill", active: task.whenDate != nil)
+                    // Calendar popover
+                    Button {
+                        showCalendarPopover.toggle()
+                    } label: {
+                        Image(systemName: task.whenDate != nil ? "calendar.circle.fill" : "calendar")
+                            .font(.system(size: 14))
+                            .foregroundStyle(showCalendarPopover ? .primary : (task.whenDate != nil ? .primary : .secondary))
+                            .frame(width: 30, height: 28)
+                            .background(showCalendarPopover ? Color.primary.opacity(0.08) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
+                    .popover(isPresented: $showCalendarPopover, arrowEdge: .bottom) {
+                        calendarPanel
+                            .frame(width: 300)
+                            .padding(4)
+                    }
 
-                    // Tags as popover
+                    // Tags popover
                     Button {
                         showTagsPopover.toggle()
                     } label: {
@@ -1056,21 +1278,30 @@ private struct FluxTaskRow: View {
                             .padding(4)
                     }
 
+                    // Subtasks toggle (inline)
                     actionButton(.subtasks, icon: "checklist", filledIcon: "checklist.checked", active: !task.checklist.isEmpty)
-                    actionButton(.deadline, icon: "flag", filledIcon: "flag.fill", active: task.deadline != nil)
+
+                    // Deadline popover
+                    Button {
+                        showDeadlinePopover.toggle()
+                    } label: {
+                        Image(systemName: task.deadline != nil ? "flag.fill" : "flag")
+                            .font(.system(size: 14))
+                            .foregroundStyle(showDeadlinePopover ? Color.primary : (task.deadline != nil ? Color.orange : Color.secondary))
+                            .frame(width: 30, height: 28)
+                            .background(showDeadlinePopover ? Color.primary.opacity(0.08) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
+                    .popover(isPresented: $showDeadlinePopover, arrowEdge: .bottom) {
+                        deadlinePanel
+                            .frame(width: 300)
+                            .padding(4)
+                    }
                 }
             }
             .padding(.horizontal, 56)
             .padding(.top, 12)
             .padding(.bottom, 8)
-
-            // Expanded action panel (calendar/deadline — subtasks panel is inline above)
-            if let action = activeAction, action != .subtasks {
-                actionPanel(for: action)
-                    .padding(.horizontal, 56)
-                    .padding(.bottom, 10)
-                    .transition(.opacity)
-            }
         }
         .padding(.bottom, 6)
     }
@@ -1127,20 +1358,6 @@ private struct FluxTaskRow: View {
     }
 
     // MARK: Action panels
-
-    @ViewBuilder
-    private func actionPanel(for action: TaskActionMode) -> some View {
-        switch action {
-        case .calendar:
-            calendarPanel
-        case .tags:
-            EmptyView()
-        case .subtasks:
-            EmptyView()
-        case .deadline:
-            deadlinePanel
-        }
-    }
 
     private var calendarPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
