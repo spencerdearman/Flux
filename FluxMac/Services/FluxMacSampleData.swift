@@ -17,7 +17,7 @@ enum FluxMacSampleDataSeeder {
         }
 
         let work = FluxArea(title: "Work", notes: "Professional commitments and shipping work.", symbolName: "briefcase.fill", tintHex: "#62666D", sortOrder: 0)
-        let health = FluxArea(title: "Health", notes: "Body, energy, appointments, and routines.", symbolName: "heart.text.square.fill", tintHex: "#6D7563", sortOrder: 1)
+        let health = FluxArea(title: "Health", notes: "Body, energy, appointments, and routines.", symbolName: "heart.fill", tintHex: "#FF383C", sortOrder: 1)
         let personal = FluxArea(title: "Personal", notes: "Life admin and personal projects.", symbolName: "house.fill", tintHex: "#8A7D6A", sortOrder: 2)
 
         let keynote = FluxProject(

@@ -55,8 +55,10 @@ struct ContentView: View {
                         openWindow(value: id)
                     } label: {
                         Image(systemName: "macwindow.badge.plus")
-                            .font(.body.weight(.medium))
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(.secondary)
+                            .frame(width: 28, height: 28)
+                            .background(Color.primary.opacity(0.06), in: Circle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Open in Window")
@@ -119,9 +121,6 @@ struct ContentView: View {
                             }
                         }
                         .padding(.leading, 20)
-                        .onTapGesture(count: 2) {
-                            openWindow(value: project.id)
-                        }
                         .dropDestination(for: String.self) { items, _ in
                             _ = reassign(tasks: items, to: project, in: area)
                         }
@@ -192,27 +191,27 @@ struct ContentView: View {
                         calendarStore.importReminders(into: modelContext, areas: areas)
                     }
                 }
-                .font(.caption2)
-                .padding(.top, 8)
-                .padding(.bottom, 6)
-                .padding(.horizontal, 16)
-                .frame(maxWidth: 280)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
-                .padding(.bottom, 10)
+                .padding(.top, 10)
+                .padding(.bottom, 8)
+                .padding(.horizontal, 20)
+                .frame(maxWidth: 260)
+                .background(.ultraThinMaterial, in: Capsule())
+                .shadow(color: .black.opacity(0.08), radius: 10, y: 3)
+                .padding(.bottom, 12)
             }
     }
 
     private func detailFooterTab(systemImage: String, label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            VStack(spacing: 3) {
+            VStack(spacing: 2) {
                 Image(systemName: systemImage)
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: 16, weight: .medium))
                 Text(label)
                     .font(.system(size: 10, weight: .medium))
             }
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -291,7 +290,8 @@ struct ContentView: View {
                         area: area,
                         tasks: tasksForArea(area),
                         expandedTaskID: $expandedTaskID,
-                        completingTaskIDs: $completingTaskIDs
+                        completingTaskIDs: $completingTaskIDs,
+                        selection: $selection
                     )
                 } else {
                     ContentUnavailableView("Area unavailable", systemImage: "rectangle.stack.badge.minus")
@@ -511,6 +511,7 @@ struct FluxAreaDetailView: View {
     let tasks: [FluxTask]
     @Binding var expandedTaskID: UUID?
     @Binding var completingTaskIDs: Set<UUID>
+    @Binding var selection: FluxSidebarSelection?
 
     private var looseTasks: [FluxTask] {
         tasks.filter { $0.project == nil && !$0.isCompleted }
@@ -547,42 +548,41 @@ struct FluxAreaDetailView: View {
 
                         VStack(spacing: 0) {
                             ForEach(sortedProjects) { project in
-                                HStack(spacing: 14) {
-                                    VStack(alignment: .leading, spacing: 4) {
+                                Button {
+                                    selection = .project(project.id)
+                                } label: {
+                                    HStack(spacing: 14) {
                                         Text(project.title)
                                             .font(.body.weight(.medium))
-                                        if !project.goalSummary.isEmpty {
-                                            Text(project.goalSummary)
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                                .lineLimit(1)
-                                        }
-                                    }
+                                            .foregroundStyle(.primary)
 
-                                    Spacer()
+                                        Spacer()
 
-                                    // Progress
-                                    HStack(spacing: 8) {
-                                        if !project.tasks.isEmpty {
-                                            Text("\(project.tasks.filter(\.isCompleted).count)/\(project.tasks.count)")
+                                        // Progress
+                                        HStack(spacing: 8) {
+                                            if !project.tasks.isEmpty {
+                                                Text("\(project.tasks.filter(\.isCompleted).count)/\(project.tasks.count)")
+                                                    .font(.caption.weight(.medium))
+                                                    .foregroundStyle(.secondary)
+
+                                                ProgressView(value: project.completionRatio)
+                                                    .frame(width: 48)
+                                                    .tint(Color(hex: project.tintHex))
+                                            }
+
+                                            Text("\(project.activeTaskCount) active")
                                                 .font(.caption.weight(.medium))
                                                 .foregroundStyle(.secondary)
-
-                                            ProgressView(value: project.completionRatio)
-                                                .frame(width: 48)
-                                                .tint(Color(hex: project.tintHex))
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 3)
+                                                .background(Color.primary.opacity(0.05), in: Capsule())
                                         }
-
-                                        Text("\(project.activeTaskCount) active")
-                                            .font(.caption.weight(.medium))
-                                            .foregroundStyle(.secondary)
-                                            .padding(.horizontal, 8)
-                                            .padding(.vertical, 3)
-                                            .background(Color.primary.opacity(0.05), in: Capsule())
                                     }
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 14)
+                                    .contentShape(Rectangle())
                                 }
-                                .padding(.horizontal, 18)
-                                .padding(.vertical, 14)
+                                .buttonStyle(.plain)
 
                                 if project.id != sortedProjects.last?.id {
                                     Divider()
@@ -629,60 +629,51 @@ struct FluxProjectDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                HStack(alignment: .top, spacing: 18) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(project.title)
-                            .font(.system(size: 32, weight: .bold))
-
-                        if !project.goalSummary.isEmpty {
-                            Text(project.goalSummary)
-                                .font(.title3)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    Spacer()
-                }
-                .padding(24)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                Text(project.title)
+                    .font(.system(size: 32, weight: .bold))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(24)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
 
                 // Simple notes editor
-                TextEditor(text: Binding(
+                TextField("Notes…", text: Binding(
                     get: { project.notes },
                     set: {
                         project.notes = $0
                         try? modelContext.save()
                     }
-                ))
+                ), axis: .vertical)
                 .font(.body)
                 .foregroundStyle(.secondary)
-                .scrollContentBackground(.hidden)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(minHeight: 40)
+                .textFieldStyle(.plain)
+                .lineLimit(2...10)
                 .padding(16)
+                .frame(minHeight: 56, alignment: .topLeading)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .overlay(alignment: .topLeading) {
-                    if project.notes.isEmpty {
-                        Text("Notes…")
-                            .font(.body)
-                            .foregroundStyle(.tertiary)
-                            .padding(16)
-                            .padding(.top, 2)
-                            .allowsHitTesting(false)
-                    }
-                }
 
                 ForEach(project.sortedHeadings) { heading in
                     let headingTasks = project.sortedTasks.filter { $0.heading?.id == heading.id }
                     VStack(alignment: .leading, spacing: 8) {
-                        FluxTaskSection(
-                            title: heading.title,
-                            tasks: headingTasks,
-                            expandedTaskID: $expandedTaskID,
-                            completingTaskIDs: $completingTaskIDs
-                        ) { task in
-                            if task.isCompleted { task.reopen() } else { task.markComplete() }
-                            try? modelContext.save()
+                        if headingTasks.isEmpty {
+                            // Just show heading title when no tasks
+                            HStack {
+                                Text(heading.title)
+                                    .font(.title3.weight(.semibold))
+                                    .foregroundStyle(.primary)
+                                Spacer()
+                                Text("0")
+                                    .foregroundStyle(.secondary)
+                            }
+                        } else {
+                            FluxTaskSection(
+                                title: heading.title,
+                                tasks: headingTasks,
+                                expandedTaskID: $expandedTaskID,
+                                completingTaskIDs: $completingTaskIDs
+                            ) { task in
+                                if task.isCompleted { task.reopen() } else { task.markComplete() }
+                                try? modelContext.save()
+                            }
                         }
 
                         FluxInlineTaskAdder(
@@ -878,6 +869,8 @@ private struct FluxTaskSection: View {
     @Binding var completingTaskIDs: Set<UUID>
     let onToggle: (FluxTask) -> Void
 
+    private enum MoveDirection { case up, down }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -890,29 +883,63 @@ private struct FluxTaskSection: View {
             }
 
             VStack(spacing: 0) {
-                ForEach(tasks) { task in
-                    FluxTaskRow(
-                        task: task,
-                        isExpanded: expandedTaskID == task.id,
-                        isCompleting: completingTaskIDs.contains(task.id),
-                        onToggle: { onToggle(task) },
-                        onTap: {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
-                                expandedTaskID = expandedTaskID == task.id ? nil : task.id
+                ForEach(Array(tasks.enumerated()), id: \.element.id) { index, task in
+                    VStack(spacing: 0) {
+                        FluxTaskRow(
+                            task: task,
+                            isExpanded: expandedTaskID == task.id,
+                            isCompleting: completingTaskIDs.contains(task.id),
+                            onToggle: { onToggle(task) },
+                            onTap: {
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                                    expandedTaskID = expandedTaskID == task.id ? nil : task.id
+                                }
+                            },
+                            onDelete: {
+                                withAnimation(.easeOut(duration: 0.25)) {
+                                    if expandedTaskID == task.id { expandedTaskID = nil }
+                                    completingTaskIDs.remove(task.id)
+                                    modelContext.delete(task)
+                                    try? modelContext.save()
+                                }
                             }
-                        },
-                        onDelete: {
-                            withAnimation(.easeOut(duration: 0.25)) {
-                                if expandedTaskID == task.id { expandedTaskID = nil }
-                                completingTaskIDs.remove(task.id)
-                                modelContext.delete(task)
-                                try? modelContext.save()
+                        )
+                        .contextMenu {
+                            if index > 0 {
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        moveTask(at: index, direction: .up)
+                                    }
+                                } label: {
+                                    Label("Move Up", systemImage: "arrow.up")
+                                }
+                            }
+                            if index < tasks.count - 1 {
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        moveTask(at: index, direction: .down)
+                                    }
+                                } label: {
+                                    Label("Move Down", systemImage: "arrow.down")
+                                }
+                            }
+                            Divider()
+                            Button(role: .destructive) {
+                                withAnimation(.easeOut(duration: 0.25)) {
+                                    if expandedTaskID == task.id { expandedTaskID = nil }
+                                    completingTaskIDs.remove(task.id)
+                                    modelContext.delete(task)
+                                    try? modelContext.save()
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
                             }
                         }
-                    )
-                    if task.id != tasks.last?.id {
-                        Divider()
-                            .padding(.leading, 46)
+
+                        if task.id != tasks.last?.id {
+                            Divider()
+                                .padding(.leading, 46)
+                        }
                     }
                 }
             }
@@ -920,7 +947,27 @@ private struct FluxTaskSection: View {
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
         }
     }
+
+    private func moveTask(at index: Int, direction: MoveDirection) {
+        let targetIndex = direction == .up ? index - 1 : index + 1
+        guard targetIndex >= 0 && targetIndex < tasks.count else { return }
+
+        // Ensure unique sort orders
+        for (i, t) in tasks.enumerated() {
+            t.sortOrder = Double(i)
+        }
+
+        let a = tasks[index]
+        let b = tasks[targetIndex]
+        let temp = a.sortOrder
+        a.sortOrder = b.sortOrder
+        b.sortOrder = temp
+        a.updatedAt = .now
+        b.updatedAt = .now
+        try? modelContext.save()
+    }
 }
+
 
 // MARK: - Task Row
 
@@ -944,8 +991,13 @@ private struct FluxTaskRow: View {
     @State private var showTagsPopover = false
     @State private var showCalendarPopover = false
     @State private var showDeadlinePopover = false
+    @State private var showMovePopover = false
     @State private var newSubtaskTitle = ""
     @State private var notesExpanded = false
+    @State private var showDeadlineTime = false
+
+    @Query(sort: \FluxArea.sortOrder) private var allAreas: [FluxArea]
+    @Query(sort: \FluxProject.sortOrder) private var allProjects: [FluxProject]
 
     private var isDone: Bool { isCompleting || task.isCompleted }
 
@@ -1012,32 +1064,30 @@ private struct FluxTaskRow: View {
                 }
             }
         }
-        .draggable(task.id.uuidString)
     }
 
     // MARK: Collapsed meta badges
 
     private var compactMeta: some View {
         HStack(spacing: 6) {
+            // 1. Area / Project
             if let project = task.project {
                 FluxBadge(text: project.title, tint: project.tintHex)
             } else if let area = task.area {
                 FluxBadge(text: area.title, tint: area.tintHex)
             }
 
-            ForEach(task.tags.prefix(3)) { tag in
-                FluxBadge(text: tag.title, tint: tag.tintHex)
-            }
-
+            // 2. When date
             if let date = task.whenDate {
                 FluxDateBadge(date: date, isDeadline: false)
             }
 
+            // 3. Deadline
             if let deadline = task.deadline {
                 HStack(spacing: 3) {
                     Image(systemName: "flag.fill")
                         .font(.system(size: 9))
-                    Text(deadline.formatted(.dateTime.month(.abbreviated).day()))
+                    Text(deadlineDisplayText(deadline))
                 }
                 .font(.caption.weight(.medium))
                 .foregroundStyle(.orange)
@@ -1046,6 +1096,12 @@ private struct FluxTaskRow: View {
                 .background(Color.orange.opacity(0.1), in: Capsule())
             }
 
+            // 4. Tags
+            ForEach(task.tags.prefix(3)) { tag in
+                FluxBadge(text: tag.title, tint: tag.tintHex)
+            }
+
+            // 5. Checklist
             if !task.checklist.isEmpty {
                 HStack(spacing: 3) {
                     Image(systemName: "checklist")
@@ -1057,12 +1113,6 @@ private struct FluxTaskRow: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(Color.black.opacity(0.06), in: Capsule())
-            }
-
-            if task.recurrenceRule != nil {
-                Image(systemName: "repeat")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -1096,39 +1146,24 @@ private struct FluxTaskRow: View {
                     }
                 }
                 .padding(.horizontal, 56)
-                .padding(.bottom, 4)
+                .padding(.top, 2)
+                .padding(.bottom, 10)
             }
 
             // Notes
             VStack(alignment: .leading, spacing: 2) {
-                ZStack(alignment: .topLeading) {
-                    // Placeholder
-                    if task.notes.isEmpty {
-                        Text("Notes")
-                            .font(.subheadline)
-                            .foregroundStyle(.tertiary)
-                            .padding(.top, 8)
-                            .padding(.leading, 5)
-                            .allowsHitTesting(false)
+                TextField("Notes", text: Binding(
+                    get: { task.notes },
+                    set: {
+                        task.notes = $0
+                        task.updatedAt = .now
+                        try? modelContext.save()
                     }
-
-                    // Always use TextEditor for zero-shift editing
-                    TextEditor(text: Binding(
-                        get: { task.notes },
-                        set: {
-                            task.notes = $0
-                            task.updatedAt = .now
-                            try? modelContext.save()
-                        }
-                    ))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .scrollContentBackground(.hidden)
-                    .scrollDisabled(true)
-                    .frame(minHeight: 30, maxHeight: notesExpanded ? .infinity : 72)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .clipped()
-                }
+                ), axis: .vertical)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .textFieldStyle(.plain)
+                .lineLimit(notesExpanded ? nil : 5)
 
                 if task.notes.count > 100 && !notesExpanded {
                     Button {
@@ -1141,7 +1176,6 @@ private struct FluxTaskRow: View {
                             .foregroundStyle(.blue)
                     }
                     .buttonStyle(.plain)
-                    .padding(.leading, 5)
                 } else if notesExpanded && task.notes.count > 100 {
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) {
@@ -1153,7 +1187,6 @@ private struct FluxTaskRow: View {
                             .foregroundStyle(.blue)
                     }
                     .buttonStyle(.plain)
-                    .padding(.leading, 5)
                 }
             }
             .padding(.horizontal, 56)
@@ -1233,7 +1266,7 @@ private struct FluxTaskRow: View {
                         HStack(spacing: 3) {
                             Image(systemName: "flag.fill")
                                 .font(.system(size: 9))
-                            Text(deadline.formatted(.dateTime.month(.abbreviated).day()))
+                            Text(deadlineDisplayText(deadline))
                         }
                         .font(.caption.weight(.medium))
                         .foregroundStyle(.orange)
@@ -1250,7 +1283,7 @@ private struct FluxTaskRow: View {
                     Button {
                         showCalendarPopover.toggle()
                     } label: {
-                        Image(systemName: task.whenDate != nil ? "calendar.circle.fill" : "calendar")
+                        Image(systemName: "calendar")
                             .font(.system(size: 14))
                             .foregroundStyle(showCalendarPopover ? .primary : (task.whenDate != nil ? .primary : .secondary))
                             .frame(width: 30, height: 28)
@@ -1299,6 +1332,23 @@ private struct FluxTaskRow: View {
                             .frame(width: 300)
                             .padding(4)
                     }
+
+                    // Move to popover
+                    Button {
+                        showMovePopover.toggle()
+                    } label: {
+                        Image(systemName: "arrow.turn.right.up")
+                            .font(.system(size: 14))
+                            .foregroundStyle(showMovePopover ? .primary : .secondary)
+                            .frame(width: 30, height: 28)
+                            .background(showMovePopover ? Color.primary.opacity(0.08) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
+                    .popover(isPresented: $showMovePopover, arrowEdge: .bottom) {
+                        movePanel
+                            .frame(width: 260)
+                            .padding(4)
+                    }
                 }
             }
             .padding(.horizontal, 56)
@@ -1339,9 +1389,30 @@ private struct FluxTaskRow: View {
                 Text("This Evening")
                     .foregroundStyle(.indigo)
             }
+        } else if task.status == .someday {
+            HStack(alignment: .center, spacing: 4) {
+                Image(systemName: "moon.zzz.fill")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 14, height: 14)
+                Text("Later")
+                    .foregroundStyle(.secondary)
+            }
         } else {
             Text("")
         }
+    }
+
+    private func deadlineDisplayText(_ deadline: Date) -> String {
+        let cal = Calendar.current
+        let hour = cal.component(.hour, from: deadline)
+        let minute = cal.component(.minute, from: deadline)
+        let dateStr = deadline.formatted(.dateTime.month(.abbreviated).day())
+        if hour == 0 && minute == 0 {
+            return dateStr
+        }
+        let timeStr = deadline.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute())
+        return "\(dateStr) \(timeStr)"
     }
 
     private func actionButton(_ mode: TaskActionMode, icon: String, filledIcon: String, active: Bool) -> some View {
@@ -1365,31 +1436,39 @@ private struct FluxTaskRow: View {
         VStack(alignment: .leading, spacing: 12) {
             // Quick-pick buttons
             HStack(spacing: 8) {
-                calendarQuickButton(icon: "star.fill", iconColor: .yellow, label: "Today") {
+                let isToday = task.whenDate != nil && Calendar.current.isDateInToday(task.whenDate!) && !task.isEvening
+                let isEvening = task.isEvening
+                let isLater = task.status == .someday && task.whenDate == nil
+
+                calendarQuickButton(icon: "star.fill", iconColor: .yellow, label: "Today", isSelected: isToday) {
                     task.whenDate = Calendar.current.startOfDay(for: .now)
+                    task.isEvening = false
+                    task.status = .active
+                    task.updatedAt = .now
+                    try? modelContext.save()
+                }
+
+                calendarQuickButton(icon: "moon.fill", iconColor: .indigo, label: "Evening", isSelected: isEvening) {
+                    task.whenDate = Calendar.current.startOfDay(for: .now)
+                    task.isEvening = true
+                    task.status = .active
+                    task.updatedAt = .now
+                    try? modelContext.save()
+                }
+
+                calendarQuickButton(icon: "moon.zzz.fill", iconColor: .secondary, label: "Later", isSelected: isLater) {
+                    task.status = .someday
+                    task.whenDate = nil
                     task.isEvening = false
                     task.updatedAt = .now
                     try? modelContext.save()
                 }
 
-                calendarQuickButton(icon: "moon.fill", iconColor: .indigo, label: "Evening") {
-                    task.whenDate = Calendar.current.startOfDay(for: .now)
-                    task.isEvening = true
-                    task.updatedAt = .now
-                    try? modelContext.save()
-                }
-
-                calendarQuickButton(icon: "shippingbox", iconColor: .secondary, label: "Someday") {
-                    task.status = .someday
-                    task.whenDate = nil
-                    task.updatedAt = .now
-                    try? modelContext.save()
-                }
-
-                if task.whenDate != nil {
+                if task.whenDate != nil || isLater {
                     calendarQuickButton(icon: "xmark", iconColor: .secondary, label: "Clear") {
                         task.whenDate = nil
                         task.isEvening = false
+                        task.status = .active
                         task.updatedAt = .now
                         try? modelContext.save()
                     }
@@ -1407,22 +1486,24 @@ private struct FluxTaskRow: View {
                 }
             )
         }
+        .frame(minWidth: 280)
         .padding(16)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
-    private func calendarQuickButton(icon: String, iconColor: Color, label: String, action: @escaping () -> Void) -> some View {
+    private func calendarQuickButton(icon: String, iconColor: Color, label: String, isSelected: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 4) {
                 Image(systemName: icon)
                     .font(.system(size: 14))
-                    .foregroundStyle(iconColor)
+                    .foregroundStyle(isSelected ? iconColor : iconColor)
+                    .frame(width: 20, height: 20)
                 Text(label)
                     .font(.caption2.weight(.medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(isSelected ? .primary : .secondary)
             }
             .frame(width: 64, height: 48)
-            .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .background(isSelected ? Color.primary.opacity(0.08) : Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
         .buttonStyle(.plain)
     }
@@ -1441,6 +1522,7 @@ private struct FluxTaskRow: View {
                 if task.deadline != nil {
                     Button {
                         task.deadline = nil
+                        showDeadlineTime = false
                         task.updatedAt = .now
                         try? modelContext.save()
                     } label: {
@@ -1459,14 +1541,296 @@ private struct FluxTaskRow: View {
                 selectedDate: task.deadline,
                 accentColor: .orange,
                 onSelect: { date in
-                    task.deadline = date
+                    if showDeadlineTime, let existing = task.deadline {
+                        // Preserve the time from the existing deadline
+                        let cal = Calendar.current
+                        let timeComps = cal.dateComponents([.hour, .minute], from: existing)
+                        var dateComps = cal.dateComponents([.year, .month, .day], from: date)
+                        dateComps.hour = timeComps.hour
+                        dateComps.minute = timeComps.minute
+                        task.deadline = cal.date(from: dateComps) ?? date
+                    } else {
+                        task.deadline = date
+                    }
                     task.updatedAt = .now
                     try? modelContext.save()
                 }
             )
+
+            // Time toggle
+            HStack(spacing: 8) {
+                Button {
+                    showDeadlineTime.toggle()
+                    if showDeadlineTime {
+                        let cal = Calendar.current
+                        if task.deadline == nil {
+                            // No deadline yet — set today at 9 AM
+                            task.deadline = cal.date(bySettingHour: 9, minute: 0, second: 0, of: .now)
+                        } else {
+                            let hour = cal.component(.hour, from: task.deadline!)
+                            if hour == 0 {
+                                task.deadline = cal.date(bySettingHour: 9, minute: 0, second: 0, of: task.deadline!)
+                            }
+                        }
+                        task.updatedAt = .now
+                        try? modelContext.save()
+                    } else if let deadline = task.deadline {
+                        // Remove time — reset to midnight
+                        let cal = Calendar.current
+                        task.deadline = cal.startOfDay(for: deadline)
+                        task.updatedAt = .now
+                        try? modelContext.save()
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock")
+                            .font(.system(size: 11))
+                        Text(showDeadlineTime ? "Remove time" : "Add time")
+                            .font(.caption.weight(.medium))
+                    }
+                    .foregroundStyle(showDeadlineTime ? .orange : .secondary)
+                }
+                .buttonStyle(.plain)
+
+                if showDeadlineTime, let deadline = task.deadline {
+                    Spacer()
+
+                    let cal = Calendar.current
+                    let hour = cal.component(.hour, from: deadline)
+                    let minute = cal.component(.minute, from: deadline)
+                    let is12Hour = hour % 12 == 0 ? 12 : hour % 12
+
+                    HStack(spacing: 0) {
+                        // Hour
+                        Menu {
+                            ForEach(1...12, id: \.self) { h in
+                                Button("\(h)") {
+                                    let newHour = hour >= 12 ? (h % 12) + 12 : h % 12
+                                    task.deadline = cal.date(bySettingHour: newHour, minute: minute, second: 0, of: deadline)
+                                    task.updatedAt = .now
+                                    try? modelContext.save()
+                                }
+                            }
+                        } label: {
+                            Text("\(is12Hour)")
+                                .font(.subheadline.weight(.medium).monospacedDigit())
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 5)
+                        }
+                        .menuStyle(.borderlessButton)
+                        .fixedSize()
+
+                        Text(":")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.secondary)
+
+                        // Minute
+                        Menu {
+                            ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { m in
+                                Button(String(format: "%02d", m)) {
+                                    task.deadline = cal.date(bySettingHour: hour, minute: m, second: 0, of: deadline)
+                                    task.updatedAt = .now
+                                    try? modelContext.save()
+                                }
+                            }
+                        } label: {
+                            Text(String(format: "%02d", minute))
+                                .font(.subheadline.weight(.medium).monospacedDigit())
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 5)
+                        }
+                        .menuStyle(.borderlessButton)
+                        .fixedSize()
+
+                        // AM/PM
+                        Menu {
+                            Button("AM") {
+                                if hour >= 12 {
+                                    task.deadline = cal.date(bySettingHour: hour - 12, minute: minute, second: 0, of: deadline)
+                                    task.updatedAt = .now
+                                    try? modelContext.save()
+                                }
+                            }
+                            Button("PM") {
+                                if hour < 12 {
+                                    task.deadline = cal.date(bySettingHour: hour + 12, minute: minute, second: 0, of: deadline)
+                                    task.updatedAt = .now
+                                    try? modelContext.save()
+                                }
+                            }
+                        } label: {
+                            Text(hour < 12 ? "AM" : "PM")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.orange)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 4)
+                        }
+                        .menuStyle(.borderlessButton)
+                        .fixedSize()
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+            }
         }
+        .frame(minWidth: 280)
         .padding(16)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .onAppear {
+            if let deadline = task.deadline {
+                let cal = Calendar.current
+                let hour = cal.component(.hour, from: deadline)
+                let minute = cal.component(.minute, from: deadline)
+                showDeadlineTime = hour != 0 || minute != 0
+            }
+        }
+    }
+
+    private var movePanel: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.turn.right.up")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+                Text("Move task")
+                    .font(.subheadline.weight(.medium))
+                Spacer()
+            }
+
+            Button {
+                moveToInbox()
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: task.isInInbox ? "checkmark.circle.fill" : "tray")
+                        .font(.system(size: 12))
+                        .foregroundStyle(task.isInInbox ? .green : .secondary)
+                    Text("Inbox")
+                        .font(.subheadline)
+                    Spacer()
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(task.isInInbox ? Color.primary.opacity(0.08) : Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .buttonStyle(.plain)
+
+            if !allAreas.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Areas")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+                        .tracking(0.5)
+
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 6) {
+                            ForEach(allAreas) { area in
+                                areaMoveRow(area)
+
+                                let projectsInArea = allProjects.filter { $0.area?.id == area.id }
+                                if !projectsInArea.isEmpty {
+                                    ForEach(projectsInArea) { project in
+                                        projectMoveRow(project, in: area)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .frame(maxHeight: 260)
+                }
+            }
+        }
+        .frame(minWidth: 240)
+        .padding(16)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private func areaMoveRow(_ area: FluxArea) -> some View {
+        let isSelected = task.area?.id == area.id && task.project == nil
+
+        return Button {
+            moveToArea(area)
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: area.symbolName)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color(hex: area.tintHex))
+                    .frame(width: 14)
+                Text(area.title)
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.green)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(isSelected ? Color.primary.opacity(0.08) : Color.clear, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func projectMoveRow(_ project: FluxProject, in area: FluxArea) -> some View {
+        let isSelected = task.project?.id == project.id
+
+        return Button {
+            moveToProject(project, in: area)
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "arrow.turn.down.right")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.tertiary)
+                    .frame(width: 14)
+                Text(project.title)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.green)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .padding(.leading, 16)
+            .background(isSelected ? Color.primary.opacity(0.08) : Color.clear, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func moveToInbox() {
+        task.area = nil
+        task.project = nil
+        task.heading = nil
+        task.isInInbox = true
+        task.updatedAt = .now
+        try? modelContext.save()
+        showMovePopover = false
+    }
+
+    private func moveToArea(_ area: FluxArea) {
+        task.area = area
+        task.project = nil
+        task.heading = nil
+        task.isInInbox = false
+        task.updatedAt = .now
+        try? modelContext.save()
+        showMovePopover = false
+    }
+
+    private func moveToProject(_ project: FluxProject, in area: FluxArea) {
+        task.area = area
+        task.project = project
+        task.heading = nil
+        task.isInInbox = false
+        task.updatedAt = .now
+        try? modelContext.save()
+        showMovePopover = false
     }
 
     private func addSubtask() {
@@ -1567,27 +1931,28 @@ private struct FluxChecklistRow: View {
     @Bindable var item: FluxChecklistItem
 
     var body: some View {
-        HStack(spacing: 10) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    item.isCompleted.toggle()
-                    try? modelContext.save()
-                }
-            } label: {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                item.isCompleted.toggle()
+                try? modelContext.save()
+            }
+        } label: {
+            HStack(spacing: 10) {
                 Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.subheadline)
                     .foregroundStyle(item.isCompleted ? Color.green : Color.gray.opacity(0.4))
                     .contentTransition(.symbolEffect(.replace))
+
+                Text(item.title)
+                    .font(.subheadline)
+                    .strikethrough(item.isCompleted)
+                    .foregroundStyle(item.isCompleted ? .secondary : .primary)
+
+                Spacer()
             }
-            .buttonStyle(.plain)
-
-            Text(item.title)
-                .font(.subheadline)
-                .strikethrough(item.isCompleted)
-                .foregroundStyle(item.isCompleted ? .secondary : .primary)
-
-            Spacer()
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
         .padding(.horizontal, 18)
         .padding(.vertical, 4)
     }
@@ -1711,6 +2076,7 @@ private struct FluxCalendarGrid: View {
         }
     }
 }
+
 
 // MARK: - Badges
 
@@ -1890,7 +2256,7 @@ struct NewAreaSheet: View {
     @State private var tintHex = "#5B83B7"
 
     private let symbolOptions = [
-        "square.grid.2x2", "briefcase.fill", "heart.text.square.fill",
+        "square.grid.2x2", "briefcase.fill", "heart.fill",
         "house.fill", "graduationcap.fill", "figure.run",
         "dollarsign.circle.fill", "paintbrush.fill"
     ]
@@ -1981,30 +2347,58 @@ struct SettingsSheet: View {
     @AppStorage("fluxDefaultView") private var defaultView = "inbox"
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 24) {
             Text("Settings")
-                .font(.title2.weight(.semibold))
+                .font(.system(size: 24, weight: .bold))
 
-            GroupBox("General") {
-                VStack(alignment: .leading, spacing: 12) {
-                    Toggle("Show completed tasks in lists", isOn: $showCompleted)
+            VStack(spacing: 0) {
+                HStack {
+                    Text("Show completed tasks")
+                        .font(.body)
+                    Spacer()
+                    Toggle("", isOn: $showCompleted)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
 
-                    Picker("Default view", selection: $defaultView) {
+                Divider()
+                    .padding(.leading, 16)
+
+                HStack {
+                    Text("Default view")
+                        .font(.body)
+                    Spacer()
+                    Picker("", selection: $defaultView) {
                         Text("Inbox").tag("inbox")
                         Text("Today").tag("today")
                         Text("Upcoming").tag("upcoming")
-                        Text("Anytime").tag("anytime")
+                        Text("Open").tag("anytime")
                     }
+                    .labelsHidden()
+                    .fixedSize()
                 }
-                .padding(8)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
             Spacer()
 
             HStack {
                 Spacer()
-                Button("Done") { dismiss() }
-                    .keyboardShortcut(.defaultAction)
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Done")
+                        .font(.body.weight(.medium))
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                        .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut(.defaultAction)
             }
         }
         .padding(24)

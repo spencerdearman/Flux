@@ -54,7 +54,7 @@ struct QuickEntryView: View {
                         Text("Notes")
                             .font(.body)
                             .foregroundStyle(.tertiary)
-                            .padding(.horizontal, 20)
+                            .padding(.leading, 25)
                             .padding(.top, 8)
                             .allowsHitTesting(false)
                     }
@@ -64,24 +64,64 @@ struct QuickEntryView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 8)
 
-            // Area & Project pickers - styled inline
-            HStack(spacing: 12) {
-                Picker("", selection: $selectedAreaID) {
-                    Text("No area").tag(UUID?.none)
-                    ForEach(areas) { area in
-                        Label(area.title, systemImage: area.symbolName).tag(Optional(area.id))
+            // Area & Project pickers
+            HStack(spacing: 10) {
+                Menu {
+                    Button {
+                        selectedAreaID = nil
+                    } label: {
+                        Label("No area", systemImage: "xmark")
                     }
+                    ForEach(areas) { area in
+                        Button {
+                            selectedAreaID = area.id
+                        } label: {
+                            Label(area.title, systemImage: area.symbolName)
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: selectedAreaID != nil ? (areas.first(where: { $0.id == selectedAreaID })?.symbolName ?? "square.grid.2x2") : "square.grid.2x2")
+                            .font(.system(size: 11))
+                            .foregroundStyle(selectedAreaID != nil ? .primary : .secondary)
+                        Text(selectedAreaID != nil ? (areas.first(where: { $0.id == selectedAreaID })?.title ?? "Area") : "Area")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(selectedAreaID != nil ? .primary : .secondary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
-                .labelsHidden()
+                .menuStyle(.borderlessButton)
                 .fixedSize()
 
-                Picker("", selection: $selectedProjectID) {
-                    Text("No project").tag(UUID?.none)
-                    ForEach(filteredProjects) { project in
-                        Text(project.title).tag(Optional(project.id))
+                Menu {
+                    Button {
+                        selectedProjectID = nil
+                    } label: {
+                        Label("No project", systemImage: "xmark")
                     }
+                    ForEach(filteredProjects) { project in
+                        Button {
+                            selectedProjectID = project.id
+                        } label: {
+                            Label(project.title, systemImage: "paperplane")
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "paperplane")
+                            .font(.system(size: 11))
+                            .foregroundStyle(selectedProjectID != nil ? .primary : .secondary)
+                        Text(selectedProjectID != nil ? (filteredProjects.first(where: { $0.id == selectedProjectID })?.title ?? "Project") : "Project")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(selectedProjectID != nil ? .primary : .secondary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
-                .labelsHidden()
+                .menuStyle(.borderlessButton)
                 .fixedSize()
 
                 Spacer()
@@ -176,20 +216,40 @@ struct QuickEntryView: View {
             HStack(spacing: 0) {
                 // Action buttons
                 HStack(spacing: 2) {
-                    quickActionButton(.calendar, icon: "calendar", active: whenDate != nil || isEvening)
+                    quickActionButton(.calendar, icon: "calendar", filledIcon: "calendar", active: whenDate != nil || isEvening)
                     quickActionButton(.tags, icon: "tag", active: !selectedTags.isEmpty)
                     quickActionButton(.deadline, icon: "flag", active: deadline != nil)
                 }
 
                 Spacer()
 
-                Button("Cancel") { dismiss() }
+                HStack(spacing: 12) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Cancel")
+                            .font(.body.weight(.medium))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
                     .keyboardShortcut(.cancelAction)
 
-                Button("Save") { saveTask() }
+                    Button {
+                        saveTask()
+                    } label: {
+                        Text("Save")
+                            .font(.body.weight(.medium))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
+                            .background(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.secondary : Color.accentColor, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
                     .keyboardShortcut(.defaultAction)
-                    .buttonStyle(.borderedProminent)
                     .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
             }
             .padding(20)
         }
@@ -198,13 +258,13 @@ struct QuickEntryView: View {
         .onAppear(perform: configureDefaults)
     }
 
-    private func quickActionButton(_ mode: QuickEntryAction, icon: String, active: Bool) -> some View {
+    private func quickActionButton(_ mode: QuickEntryAction, icon: String, filledIcon: String? = nil, active: Bool) -> some View {
         Button {
             withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
                 activeAction = activeAction == mode ? nil : mode
             }
         } label: {
-            Image(systemName: active ? "\(icon).fill" : icon)
+            Image(systemName: active ? (filledIcon ?? "\(icon).fill") : icon)
                 .font(.system(size: 14))
                 .foregroundStyle(activeAction == mode ? .primary : (active ? .primary : .tertiary))
                 .frame(width: 30, height: 28)
