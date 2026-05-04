@@ -1,14 +1,7 @@
-//
-//  FluxMacSampleData.swift
-//  FluxMac
-//
-//  Created by OpenAI.
-//
-
 import Foundation
 import SwiftData
 
-enum FluxMacSampleDataSeeder {
+enum FluxSampleDataSeeder {
     @MainActor
     static func bootstrapIfNeeded(in context: ModelContext) {
         let descriptor = FetchDescriptor<FluxArea>()

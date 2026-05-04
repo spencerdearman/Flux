@@ -14,7 +14,14 @@ struct FluxApp: App {
     let sharedModelContainer: ModelContainer
     
     init() {
-        let schema = Schema([DailyTask.self])
+        let schema = Schema([
+            FluxArea.self,
+            FluxProject.self,
+            FluxHeading.self,
+            FluxTask.self,
+            FluxChecklistItem.self,
+            FluxTag.self
+        ])
         let modelConfiguration = ModelConfiguration(
             "Flux",
             schema: schema,
@@ -22,7 +29,9 @@ struct FluxApp: App {
         )
         
         do {
-            self.sharedModelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
+            let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+            FluxSampleDataSeeder.bootstrapIfNeeded(in: container.mainContext)
+            self.sharedModelContainer = container
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }

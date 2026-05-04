@@ -19,13 +19,13 @@ struct ContentView: View {
     @Query(sort: \FluxTask.createdAt, order: .reverse) private var tasks: [FluxTask]
 
     @State private var selection: FluxSidebarSelection? = .inbox
-    @State private var searchText = ""
     @State private var showQuickEntrySheet = false
     @State private var showNewProjectSheet = false
     @State private var showNewAreaSheet = false
     @State private var showSettingsSheet = false
     @State private var expandedTaskID: UUID?
     @State private var completingTaskIDs: Set<UUID> = []
+    @State private var showQuickFind = false
 
     var body: some View {
         NavigationSplitView {
@@ -34,7 +34,6 @@ struct ContentView: View {
             detailContainer
         }
         .navigationSplitViewStyle(.balanced)
-        .searchable(text: $searchText, placement: .sidebar, prompt: "Search tasks…")
         .sheet(isPresented: $showQuickEntrySheet) {
             QuickEntryView(defaultSelection: selection)
         }
@@ -76,12 +75,73 @@ struct ContentView: View {
             calendarStore.refresh()
         }
         .focusedSceneValue(\.selectedProjectID, selectedProjectID)
+        .overlay {
+            if showQuickFind {
+                FluxQuickFindOverlay(
+                    areas: areas,
+                    projects: projects,
+                    tasks: tasks,
+                    onSelectSidebar: { sel in
+                        selection = sel
+                        showQuickFind = false
+                    },
+                    onSelectTask: { task in
+                        // Navigate to the task's context and expand it
+                        if let project = task.project {
+                            selection = .project(project.id)
+                        } else if let area = task.area {
+                            selection = .area(area.id)
+                        } else if task.isInInbox {
+                            selection = .inbox
+                        } else if task.status == .someday {
+                            selection = .someday
+                        } else {
+                            selection = .anytime
+                        }
+                        expandedTaskID = task.id
+                        showQuickFind = false
+                    },
+                    onDismiss: {
+                        showQuickFind = false
+                    }
+                )
+            }
+        }
+        .background {
+            Button("") { showQuickFind.toggle() }
+                .keyboardShortcut("f", modifiers: .command)
+                .hidden()
+        }
     }
 
     // MARK: - Sidebar
 
     private var sidebar: some View {
         List(selection: $selection) {
+            // Quick Find button
+            Button {
+                showQuickFind = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                    Text("Quick Find")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text("⌘F")
+                        .font(.caption)
+                        .foregroundStyle(.quaternary)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .listRowInsets(EdgeInsets(top: 4, leading: 10, bottom: 4, trailing: 10))
+            .listRowSeparator(.hidden)
+
             Section("Core") {
                 navLink("Inbox", systemImage: "tray.fill", selection: .inbox, count: inboxTasks.count)
                 navLink("Today", systemImage: "sun.max.fill", selection: .today, count: todayTasks.count)
@@ -218,17 +278,7 @@ struct ContentView: View {
 
     @ViewBuilder
     private var detailContent: some View {
-        if !searchText.isEmpty {
-            FluxTaskCollectionView(
-                title: "Search",
-                tasks: searchResults,
-                events: [],
-                expandedTaskID: $expandedTaskID,
-                completingTaskIDs: $completingTaskIDs,
-                onToggle: toggleTask
-            )
-        } else {
-            switch selection ?? .inbox {
+        switch selection ?? .inbox {
             case .inbox:
                 FluxTaskCollectionView(
                     title: "Inbox",
@@ -307,37 +357,14 @@ struct ContentView: View {
                     ContentUnavailableView("Project unavailable", systemImage: "square.stack.3d.up.slash")
                 }
             }
-        }
     }
 
     // MARK: - Data
 
-    private var filteredAreas: [FluxArea] {
-        guard !searchText.isEmpty else { return areas }
-        return areas.filter {
-            $0.title.localizedCaseInsensitiveContains(searchText)
-                || $0.notes.localizedCaseInsensitiveContains(searchText)
-                || filteredProjects(in: $0).isEmpty == false
-        }
-    }
+    private var filteredAreas: [FluxArea] { areas }
 
     private func filteredProjects(in area: FluxArea) -> [FluxProject] {
-        let areaProjects = projects.filter { $0.area?.id == area.id }
-        guard !searchText.isEmpty else { return areaProjects }
-        return areaProjects.filter {
-            $0.title.localizedCaseInsensitiveContains(searchText)
-                || $0.notes.localizedCaseInsensitiveContains(searchText)
-        }
-    }
-
-    private var searchResults: [FluxTask] {
-        tasks.filter {
-            $0.title.localizedCaseInsensitiveContains(searchText)
-                || $0.notes.localizedCaseInsensitiveContains(searchText)
-                || ($0.area?.title.localizedCaseInsensitiveContains(searchText) ?? false)
-                || ($0.project?.title.localizedCaseInsensitiveContains(searchText) ?? false)
-                || $0.tags.contains(where: { $0.title.localizedCaseInsensitiveContains(searchText) })
-        }
+        projects.filter { $0.area?.id == area.id }
     }
 
     private var inboxTasks: [FluxTask] { activeTasks.filter(\.isInInbox) }
@@ -518,7 +545,7 @@ struct FluxAreaDetailView: View {
     }
 
     private var sortedProjects: [FluxProject] {
-        area.projects.sorted(by: { $0.sortOrder < $1.sortOrder })
+        area.projectList.sorted(by: { $0.sortOrder < $1.sortOrder })
     }
 
     var body: some View {
@@ -560,8 +587,8 @@ struct FluxAreaDetailView: View {
 
                                         // Progress
                                         HStack(spacing: 8) {
-                                            if !project.tasks.isEmpty {
-                                                Text("\(project.tasks.filter(\.isCompleted).count)/\(project.tasks.count)")
+                                            if !project.taskList.isEmpty {
+                                                Text("\(project.taskList.filter(\.isCompleted).count)/\(project.taskList.count)")
                                                     .font(.caption.weight(.medium))
                                                     .foregroundStyle(.secondary)
 
@@ -749,7 +776,7 @@ struct FluxProjectDetailView: View {
         guard !title.isEmpty else { return }
         let heading = FluxHeading(
             title: title,
-            sortOrder: Double(project.headings.count),
+            sortOrder: Double(project.headingList.count),
             project: project
         )
         modelContext.insert(heading)
@@ -812,7 +839,7 @@ private struct FluxInlineTaskAdder: View {
         let task = FluxTask(
             title: trimmed,
             isInInbox: false,
-            sortOrder: Double(project.tasks.count),
+            sortOrder: Double(project.taskList.count),
             area: area,
             project: project,
             heading: heading
@@ -1002,8 +1029,8 @@ private struct FluxTaskRow: View {
     private var isDone: Bool { isCompleting || task.isCompleted }
 
     private var hasCompactMeta: Bool {
-        task.project != nil || task.area != nil || !task.tags.isEmpty
-            || task.effectiveDate != nil || !task.checklist.isEmpty
+        task.project != nil || task.area != nil || !task.tagList.isEmpty
+            || task.effectiveDate != nil || !task.checklistItems.isEmpty
             || task.recurrenceRule != nil || task.deadline != nil
     }
 
@@ -1097,16 +1124,16 @@ private struct FluxTaskRow: View {
             }
 
             // 4. Tags
-            ForEach(task.tags.prefix(3)) { tag in
+            ForEach(task.tagList.prefix(3)) { tag in
                 FluxBadge(text: tag.title, tint: tag.tintHex)
             }
 
             // 5. Checklist
-            if !task.checklist.isEmpty {
+            if !task.checklistItems.isEmpty {
                 HStack(spacing: 3) {
                     Image(systemName: "checklist")
                         .font(.system(size: 9))
-                    Text("\(task.checklist.filter(\.isCompleted).count)/\(task.checklist.count)")
+                    Text("\(task.checklistItems.filter(\.isCompleted).count)/\(task.checklistItems.count)")
                 }
                 .font(.caption.weight(.medium))
                 .foregroundStyle(.secondary)
@@ -1122,15 +1149,17 @@ private struct FluxTaskRow: View {
     private var expandedContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Tag badges — directly under title
-            if !task.tags.isEmpty {
+            if !task.tagList.isEmpty {
                 FlowLayout(spacing: 6) {
-                    ForEach(task.tags) { tag in
+                    ForEach(task.tagList) { tag in
                         HStack(spacing: 4) {
                             Text(tag.title)
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(Color(hex: tag.tintHex))
                             Button {
-                                task.tags.removeAll { $0.id == tag.id }
+                                if let assignment = task.tagAssignmentList.first(where: { $0.tag?.id == tag.id }) {
+                                    modelContext.delete(assignment)
+                                }
                                 task.updatedAt = .now
                                 try? modelContext.save()
                             } label: {
@@ -1192,7 +1221,7 @@ private struct FluxTaskRow: View {
             .padding(.horizontal, 56)
 
             // Subtasks section
-            if !task.checklist.isEmpty || activeAction == .subtasks {
+            if !task.checklistItems.isEmpty || activeAction == .subtasks {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Subtasks")
                         .font(.caption.weight(.semibold))
@@ -1202,9 +1231,9 @@ private struct FluxTaskRow: View {
                         .padding(.horizontal, 56)
                         .padding(.top, 14)
 
-                    if !task.checklist.isEmpty {
+                    if !task.checklistItems.isEmpty {
                         VStack(alignment: .leading, spacing: 2) {
-                            ForEach(task.checklist.sorted(by: { $0.sortOrder < $1.sortOrder })) { item in
+                            ForEach(task.checklistItems.sorted(by: { $0.sortOrder < $1.sortOrder })) { item in
                                 FluxChecklistRow(item: item)
                             }
                         }
@@ -1300,9 +1329,9 @@ private struct FluxTaskRow: View {
                     Button {
                         showTagsPopover.toggle()
                     } label: {
-                        Image(systemName: !task.tags.isEmpty ? "tag.fill" : "tag")
+                        Image(systemName: !task.tagList.isEmpty ? "tag.fill" : "tag")
                             .font(.system(size: 14))
-                            .foregroundStyle(showTagsPopover ? .primary : (!task.tags.isEmpty ? .primary : .secondary))
+                            .foregroundStyle(showTagsPopover ? .primary : (!task.tagList.isEmpty ? .primary : .secondary))
                             .frame(width: 30, height: 28)
                             .background(showTagsPopover ? Color.primary.opacity(0.08) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
                     }
@@ -1314,7 +1343,7 @@ private struct FluxTaskRow: View {
                     }
 
                     // Subtasks toggle (inline)
-                    actionButton(.subtasks, icon: "checklist", filledIcon: "checklist.checked", active: !task.checklist.isEmpty)
+                    actionButton(.subtasks, icon: "checklist", filledIcon: "checklist.checked", active: !task.checklistItems.isEmpty)
 
                     // Deadline popover
                     Button {
@@ -1839,11 +1868,14 @@ private struct FluxTaskRow: View {
 
         let item = FluxChecklistItem(
             title: title,
-            sortOrder: Double(task.checklist.count),
+            sortOrder: Double(task.checklistItems.count),
             task: task
         )
         modelContext.insert(item)
-        task.checklist.append(item)
+        if task.checklist == nil {
+            task.checklist = []
+        }
+        task.checklist?.append(item)
         try? modelContext.save()
         newSubtaskTitle = ""
     }
@@ -1860,7 +1892,7 @@ private struct FluxTagPanel: View {
 
     private var filteredTags: [FluxTag] {
         let unassigned = allTags.filter { tag in
-            !task.tags.contains(where: { $0.id == tag.id })
+            !task.tagList.contains(where: { $0.id == tag.id })
         }
         if searchText.isEmpty { return unassigned }
         return unassigned.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
@@ -1886,7 +1918,8 @@ private struct FluxTagPanel: View {
                 VStack(alignment: .leading, spacing: 2) {
                     ForEach(filteredTags.prefix(6)) { tag in
                         Button {
-                            task.tags.append(tag)
+                            let assignment = FluxTaskTagAssignment(task: task, tag: tag)
+                            modelContext.insert(assignment)
                             task.updatedAt = .now
                             try? modelContext.save()
                             searchText = ""
@@ -1915,9 +1948,10 @@ private struct FluxTagPanel: View {
     private func createTag() {
         let name = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else { return }
-        let tag = FluxTag(title: name)
+        let tag = FluxTag(title: name, tintHex: FluxTag.nextColor(forIndex: allTags.count))
         modelContext.insert(tag)
-        task.tags.append(tag)
+        let assignment = FluxTaskTagAssignment(task: task, tag: tag)
+        modelContext.insert(assignment)
         task.updatedAt = .now
         try? modelContext.save()
         searchText = ""
@@ -1960,7 +1994,7 @@ private struct FluxChecklistRow: View {
 
 // MARK: - Custom Calendar Grid
 
-private struct FluxCalendarGrid: View {
+struct FluxCalendarGrid: View {
     let selectedDate: Date?
     var accentColor: Color = .blue
     let onSelect: (Date) -> Void
@@ -2233,7 +2267,7 @@ struct NewProjectSheet: View {
             notes: notes.trimmingCharacters(in: .whitespacesAndNewlines),
             goalSummary: notes.trimmingCharacters(in: .whitespacesAndNewlines),
             tintHex: tintHex,
-            sortOrder: Double(areas.flatMap(\.projects).count),
+            sortOrder: Double(areas.flatMap(\.projectList).count),
             area: area
         )
         modelContext.insert(project)
@@ -2421,7 +2455,7 @@ extension FocusedValues {
 
 // MARK: - Flow Layout (for tag chips)
 
-private struct FlowLayout: Layout {
+struct FlowLayout: Layout {
     var spacing: CGFloat = 6
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
@@ -2459,6 +2493,222 @@ private struct FlowLayout: Layout {
             x += size.width + spacing
             rowHeight = max(rowHeight, size.height)
         }
+    }
+}
+
+// MARK: - Quick Find Overlay
+
+private struct FluxQuickFindOverlay: View {
+    let areas: [FluxArea]
+    let projects: [FluxProject]
+    let tasks: [FluxTask]
+    let onSelectSidebar: (FluxSidebarSelection) -> Void
+    let onSelectTask: (FluxTask) -> Void
+    let onDismiss: () -> Void
+
+    @State private var query = ""
+    @FocusState private var isFocused: Bool
+    @State private var selectedIndex = 0
+
+    private struct QuickFindItem: Identifiable {
+        let id: String
+        let icon: String
+        let iconColor: Color
+        let title: String
+        let subtitle: String?
+        let action: () -> Void
+    }
+
+    private var coreListItems: [QuickFindItem] {
+        let lists: [(String, String, Color, FluxSidebarSelection)] = [
+            ("Inbox", "tray.fill", .primary, .inbox),
+            ("Today", "sun.max.fill", .yellow, .today),
+            ("Upcoming", "calendar", .red, .upcoming),
+            ("Open", "tray.2.fill", .blue, .anytime),
+            ("Later", "moon.zzz.fill", .purple, .someday),
+            ("Done", "checkmark.circle.fill", .green, .logbook),
+        ]
+        return lists.compactMap { (title, icon, color, sel) in
+            guard query.isEmpty || title.localizedCaseInsensitiveContains(query) else { return nil }
+            return QuickFindItem(id: "list-\(title)", icon: icon, iconColor: color, title: title, subtitle: nil) {
+                onSelectSidebar(sel)
+            }
+        }
+    }
+
+    private var areaItems: [QuickFindItem] {
+        let filtered = query.isEmpty ? areas : areas.filter { $0.title.localizedCaseInsensitiveContains(query) }
+        return filtered.map { area in
+            QuickFindItem(id: "area-\(area.id)", icon: area.symbolName, iconColor: Color(hex: area.tintHex), title: area.title, subtitle: nil) {
+                onSelectSidebar(.area(area.id))
+            }
+        }
+    }
+
+    private var projectItems: [QuickFindItem] {
+        let filtered = query.isEmpty ? projects : projects.filter { $0.title.localizedCaseInsensitiveContains(query) }
+        return filtered.map { project in
+            QuickFindItem(id: "project-\(project.id)", icon: "paperplane", iconColor: Color(hex: project.tintHex), title: project.title, subtitle: project.area?.title) {
+                onSelectSidebar(.project(project.id))
+            }
+        }
+    }
+
+    private var taskItems: [QuickFindItem] {
+        guard !query.isEmpty else { return [] }
+        let filtered = tasks.filter { !$0.isCompleted && $0.title.localizedCaseInsensitiveContains(query) }
+        return filtered.prefix(8).map { task in
+            QuickFindItem(id: "task-\(task.id)", icon: "circle", iconColor: .secondary, title: task.title, subtitle: task.project?.title ?? task.area?.title) {
+                onSelectTask(task)
+            }
+        }
+    }
+
+    private var allItems: [QuickFindItem] {
+        coreListItems + areaItems + projectItems + taskItems
+    }
+
+    var body: some View {
+        ZStack {
+            // Dimmed background
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+                .onTapGesture { onDismiss() }
+
+            VStack(spacing: 0) {
+                // Search field
+                HStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(.secondary)
+                    TextField("Quick Find", text: $query)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 18))
+                        .focused($isFocused)
+                        .onSubmit {
+                            if let item = allItems[safe: selectedIndex] {
+                                item.action()
+                            }
+                        }
+                    if !query.isEmpty {
+                        Button {
+                            query = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.tertiary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+
+                Divider()
+
+                // Results
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 2) {
+                        if !coreListItems.isEmpty {
+                            quickFindSection("Lists", items: coreListItems)
+                        }
+                        if !areaItems.isEmpty {
+                            quickFindSection("Areas", items: areaItems)
+                        }
+                        if !projectItems.isEmpty {
+                            quickFindSection("Projects", items: projectItems)
+                        }
+                        if !taskItems.isEmpty {
+                            quickFindSection("Tasks", items: taskItems)
+                        }
+                        if allItems.isEmpty {
+                            Text("No results")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .padding(16)
+                        }
+                    }
+                    .padding(.vertical, 6)
+                }
+                .frame(maxHeight: 340)
+            }
+            .frame(width: 420)
+            .background(.ultraThickMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .shadow(color: .black.opacity(0.2), radius: 30, y: 10)
+            .padding(.bottom, 100)
+        }
+        .onAppear {
+            isFocused = true
+            selectedIndex = 0
+        }
+        .onKeyPress(.escape) {
+            onDismiss()
+            return .handled
+        }
+        .onKeyPress(.downArrow) {
+            selectedIndex = min(selectedIndex + 1, allItems.count - 1)
+            return .handled
+        }
+        .onKeyPress(.upArrow) {
+            selectedIndex = max(selectedIndex - 1, 0)
+            return .handled
+        }
+        .onChange(of: query) {
+            selectedIndex = 0
+        }
+    }
+
+    private func quickFindSection(_ title: String, items: [QuickFindItem]) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+
+            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                let globalIndex = globalIndex(for: item)
+                Button {
+                    item.action()
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: item.icon)
+                            .font(.system(size: 14))
+                            .foregroundStyle(item.iconColor)
+                            .frame(width: 22, height: 22)
+                        Text(item.title)
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                        if let subtitle = item.subtitle {
+                            Text(subtitle)
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(
+                        globalIndex == selectedIndex
+                            ? Color.accentColor.opacity(0.12)
+                            : Color.clear,
+                        in: RoundedRectangle(cornerRadius: 8)
+                    )
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func globalIndex(for item: QuickFindItem) -> Int {
+        allItems.firstIndex(where: { $0.id == item.id }) ?? -1
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
 

@@ -26,11 +26,10 @@ struct QuickEntryView: View {
     @State private var deadline: Date?
     @State private var isEvening = false
     @State private var selectedTags: [FluxTag] = []
-    @State private var activeAction: QuickEntryAction?
 
-    private enum QuickEntryAction: Hashable {
-        case calendar, tags, deadline
-    }
+    @State private var showCalendarPopover = false
+    @State private var showTagsPopover = false
+    @State private var showDeadlinePopover = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -43,29 +42,20 @@ struct QuickEntryView: View {
                 .padding(.bottom, 12)
 
             // Notes
-            TextEditor(text: $notes)
+            TextField("Notes", text: $notes, axis: .vertical)
                 .font(.body)
                 .foregroundStyle(.secondary)
-                .scrollContentBackground(.hidden)
-                .frame(minHeight: 80, maxHeight: 120)
+                .textFieldStyle(.plain)
+                .lineLimit(3...6)
                 .padding(.horizontal, 20)
-                .overlay(alignment: .topLeading) {
-                    if notes.isEmpty {
-                        Text("Notes")
-                            .font(.body)
-                            .foregroundStyle(.tertiary)
-                            .padding(.leading, 25)
-                            .padding(.top, 8)
-                            .allowsHitTesting(false)
-                    }
-                }
+                .frame(minHeight: 60)
 
             Divider()
                 .padding(.horizontal, 20)
                 .padding(.vertical, 8)
 
-            // Area & Project pickers
-            HStack(spacing: 10) {
+            // Area, Project, and date/deadline badges — inline row
+            FlowLayout(spacing: 8) {
                 Menu {
                     Button {
                         selectedAreaID = nil
@@ -124,7 +114,46 @@ struct QuickEntryView: View {
                 .menuStyle(.borderlessButton)
                 .fixedSize()
 
-                Spacer()
+                // Inline date badges
+                if isEvening {
+                    HStack(spacing: 4) {
+                        Image(systemName: "moon.fill").font(.system(size: 11)).foregroundStyle(.indigo)
+                        Text("This Evening").font(.caption.weight(.medium)).foregroundStyle(.indigo)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(Color.indigo.opacity(0.08), in: Capsule())
+                } else if let date = whenDate {
+                    HStack(spacing: 4) {
+                        Image(systemName: "calendar").font(.system(size: 11)).foregroundStyle(.secondary)
+                        Text(date.formatted(.dateTime.month(.abbreviated).day())).font(.caption.weight(.medium))
+                        Button {
+                            whenDate = nil
+                        } label: {
+                            Image(systemName: "xmark.circle.fill").font(.system(size: 10)).foregroundStyle(.tertiary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(Color.primary.opacity(0.05), in: Capsule())
+                }
+
+                if let dl = deadline {
+                    HStack(spacing: 4) {
+                        Image(systemName: "flag.fill").font(.system(size: 11)).foregroundStyle(.orange)
+                        Text(dl.formatted(.dateTime.month(.abbreviated).day())).font(.caption.weight(.medium)).foregroundStyle(.orange)
+                        Button {
+                            deadline = nil
+                        } label: {
+                            Image(systemName: "xmark.circle.fill").font(.system(size: 10)).foregroundStyle(.tertiary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(Color.orange.opacity(0.08), in: Capsule())
+                }
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 8)
@@ -155,70 +184,62 @@ struct QuickEntryView: View {
                 .padding(.bottom, 8)
             }
 
-            // Date / deadline info
-            if whenDate != nil || deadline != nil || isEvening {
-                HStack(spacing: 12) {
-                    if isEvening {
-                        HStack(spacing: 4) {
-                            Image(systemName: "moon.fill").font(.system(size: 11)).foregroundStyle(.indigo)
-                            Text("This Evening").font(.caption.weight(.medium)).foregroundStyle(.indigo)
-                        }
-                    } else if let date = whenDate {
-                        HStack(spacing: 4) {
-                            Image(systemName: "calendar").font(.system(size: 11)).foregroundStyle(.secondary)
-                            Text(date.formatted(.dateTime.month(.abbreviated).day())).font(.caption.weight(.medium))
-                        }
-                        Button {
-                            whenDate = nil
-                        } label: {
-                            Image(systemName: "xmark.circle.fill").font(.caption).foregroundStyle(.tertiary)
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    if let dl = deadline {
-                        HStack(spacing: 4) {
-                            Image(systemName: "flag.fill").font(.system(size: 11)).foregroundStyle(.orange)
-                            Text("Due \(dl.formatted(.dateTime.month(.abbreviated).day()))").font(.caption.weight(.medium)).foregroundStyle(.orange)
-                        }
-                        Button {
-                            deadline = nil
-                        } label: {
-                            Image(systemName: "xmark.circle.fill").font(.caption).foregroundStyle(.tertiary)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 8)
-            }
-
-            // Action panel
-            if let action = activeAction {
-                Group {
-                    switch action {
-                    case .calendar:
-                        calendarPanel
-                    case .tags:
-                        tagsPanel
-                    case .deadline:
-                        deadlinePanel
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 8)
-                .transition(.opacity)
-            }
-
             Spacer(minLength: 0)
 
-            // Bottom bar: action buttons + save
+            // Bottom bar: popover action buttons + save
             HStack(spacing: 0) {
-                // Action buttons
+                // Action buttons with popovers
                 HStack(spacing: 2) {
-                    quickActionButton(.calendar, icon: "calendar", filledIcon: "calendar", active: whenDate != nil || isEvening)
-                    quickActionButton(.tags, icon: "tag", active: !selectedTags.isEmpty)
-                    quickActionButton(.deadline, icon: "flag", active: deadline != nil)
+                    // Calendar popover
+                    Button {
+                        showCalendarPopover.toggle()
+                    } label: {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 14))
+                            .foregroundStyle(showCalendarPopover ? .primary : (whenDate != nil || isEvening ? .primary : .tertiary))
+                            .frame(width: 30, height: 28)
+                            .background(showCalendarPopover ? Color.primary.opacity(0.08) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
+                    .popover(isPresented: $showCalendarPopover, arrowEdge: .top) {
+                        calendarPanel
+                            .frame(width: 300)
+                            .padding(4)
+                    }
+
+                    // Tags popover
+                    Button {
+                        showTagsPopover.toggle()
+                    } label: {
+                        Image(systemName: !selectedTags.isEmpty ? "tag.fill" : "tag")
+                            .font(.system(size: 14))
+                            .foregroundStyle(showTagsPopover ? .primary : (!selectedTags.isEmpty ? .primary : .tertiary))
+                            .frame(width: 30, height: 28)
+                            .background(showTagsPopover ? Color.primary.opacity(0.08) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
+                    .popover(isPresented: $showTagsPopover, arrowEdge: .top) {
+                        tagsPanel
+                            .frame(width: 220)
+                            .padding(4)
+                    }
+
+                    // Deadline popover
+                    Button {
+                        showDeadlinePopover.toggle()
+                    } label: {
+                        Image(systemName: deadline != nil ? "flag.fill" : "flag")
+                            .font(.system(size: 14))
+                            .foregroundStyle(showDeadlinePopover ? Color.primary : (deadline != nil ? Color.orange : Color(white: 0.6)))
+                            .frame(width: 30, height: 28)
+                            .background(showDeadlinePopover ? Color.primary.opacity(0.08) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
+                    .popover(isPresented: $showDeadlinePopover, arrowEdge: .top) {
+                        deadlinePanel
+                            .frame(width: 300)
+                            .padding(4)
+                    }
                 }
 
                 Spacer()
@@ -258,79 +279,109 @@ struct QuickEntryView: View {
         .onAppear(perform: configureDefaults)
     }
 
-    private func quickActionButton(_ mode: QuickEntryAction, icon: String, filledIcon: String? = nil, active: Bool) -> some View {
-        Button {
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
-                activeAction = activeAction == mode ? nil : mode
-            }
-        } label: {
-            Image(systemName: active ? (filledIcon ?? "\(icon).fill") : icon)
-                .font(.system(size: 14))
-                .foregroundStyle(activeAction == mode ? .primary : (active ? .primary : .tertiary))
-                .frame(width: 30, height: 28)
-                .background(activeAction == mode ? Color.primary.opacity(0.08) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
-        }
-        .buttonStyle(.plain)
-    }
+    // MARK: - Calendar Panel (popover content)
 
     private var calendarPanel: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 12) {
-                Button {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                let isToday = whenDate != nil && Calendar.current.isDateInToday(whenDate!) && !isEvening
+
+                quickPickButton(icon: "star.fill", iconColor: .yellow, label: "Today", isSelected: isToday) {
                     whenDate = Calendar.current.startOfDay(for: .now)
                     isEvening = false
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "star.fill").font(.system(size: 11)).foregroundStyle(.yellow)
-                        Text("Today").font(.subheadline)
-                    }
-                    .padding(.horizontal, 10).padding(.vertical, 6)
-                    .background(Color.primary.opacity(0.06), in: Capsule())
                 }
-                .buttonStyle(.plain)
 
-                Button {
+                quickPickButton(icon: "moon.fill", iconColor: .indigo, label: "Evening", isSelected: isEvening) {
                     whenDate = Calendar.current.startOfDay(for: .now)
                     isEvening = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "moon.fill").font(.system(size: 11)).foregroundStyle(.indigo)
-                        Text("This Evening").font(.subheadline)
-                    }
-                    .padding(.horizontal, 10).padding(.vertical, 6)
-                    .background(Color.primary.opacity(0.06), in: Capsule())
                 }
-                .buttonStyle(.plain)
+
+                if whenDate != nil || isEvening {
+                    quickPickButton(icon: "xmark", iconColor: .secondary, label: "Clear", isSelected: false) {
+                        whenDate = nil
+                        isEvening = false
+                    }
+                }
             }
 
-            DatePicker("", selection: Binding(
-                get: { whenDate ?? .now },
-                set: { whenDate = $0; isEvening = false }
-            ), displayedComponents: [.date])
-            .datePickerStyle(.graphical)
-            .labelsHidden()
-            .frame(maxWidth: 280, maxHeight: 240)
+            FluxCalendarGrid(
+                selectedDate: whenDate,
+                onSelect: { date in
+                    whenDate = date
+                    isEvening = false
+                }
+            )
         }
-        .padding(12)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .frame(minWidth: 280)
+        .padding(16)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
+
+    // MARK: - Tags Panel (popover content)
 
     private var tagsPanel: some View {
         QuickEntryTagPanel(allTags: allTags, selectedTags: $selectedTags, modelContext: modelContext)
+            .padding(12)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
+    // MARK: - Deadline Panel (popover content)
+
     private var deadlinePanel: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            DatePicker("", selection: Binding(
-                get: { deadline ?? Calendar.current.date(byAdding: .day, value: 7, to: .now) ?? .now },
-                set: { deadline = $0 }
-            ), displayedComponents: [.date])
-            .datePickerStyle(.graphical)
-            .labelsHidden()
-            .frame(maxWidth: 280, maxHeight: 240)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "flag.fill")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.orange)
+                Text("Deadline")
+                    .font(.subheadline.weight(.medium))
+
+                Spacer()
+
+                if deadline != nil {
+                    Button {
+                        deadline = nil
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 10, weight: .bold))
+                            Text("Clear")
+                                .font(.caption.weight(.medium))
+                        }
+                        .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            FluxCalendarGrid(
+                selectedDate: deadline,
+                accentColor: .orange,
+                onSelect: { date in
+                    deadline = date
+                }
+            )
         }
-        .padding(12)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .frame(minWidth: 280)
+        .padding(16)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private func quickPickButton(icon: String, iconColor: Color, label: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .foregroundStyle(iconColor)
+                    .frame(width: 20, height: 20)
+                Text(label)
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(isSelected ? .primary : .secondary)
+            }
+            .frame(width: 64, height: 48)
+            .background(isSelected ? Color.primary.opacity(0.08) : Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+        .buttonStyle(.plain)
     }
 
     private var filteredProjects: [FluxProject] {
@@ -373,9 +424,11 @@ struct QuickEntryView: View {
             area: resolvedArea,
             project: selectedProject
         )
-        task.tags = selectedTags
-
         modelContext.insert(task)
+        for tag in selectedTags {
+            let assignment = FluxTaskTagAssignment(task: task, tag: tag)
+            modelContext.insert(assignment)
+        }
         try? modelContext.save()
         dismiss()
     }
@@ -439,7 +492,7 @@ private struct QuickEntryTagPanel: View {
     private func createTag() {
         let name = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else { return }
-        let tag = FluxTag(title: name)
+        let tag = FluxTag(title: name, tintHex: FluxTag.nextColor(forIndex: allTags.count))
         modelContext.insert(tag)
         selectedTags.append(tag)
         try? modelContext.save()

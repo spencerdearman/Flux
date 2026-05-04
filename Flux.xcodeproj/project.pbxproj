@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4D3A98F12FA7A324001DDB61 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4DA258D72FA29C5100DCA196 /* AppIcon.icon */; };
+		4D3A98F22FA7A324001DDB61 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4DA258D72FA29C5100DCA196 /* AppIcon.icon */; };
+		4D3A98F32FA7A324001DDB61 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4DA258D72FA29C5100DCA196 /* AppIcon.icon */; };
+		4D3A98F42FA7A324001DDB61 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4DA258D72FA29C5100DCA196 /* AppIcon.icon */; };
 		4D9CB80A2F8C41AC00F536E1 /* Flux Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 4D9CB8092F8C41AC00F536E1 /* Flux Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4D9CB8A32F8DA9CB00F536E1 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D9CB8A22F8DA9CB00F536E1 /* WidgetKit.framework */; };
 		4D9CB8A52F8DA9CB00F536E1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D9CB8A42F8DA9CB00F536E1 /* SwiftUI.framework */; };
@@ -412,6 +416,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D3A98F32FA7A324001DDB61 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -419,6 +424,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D3A98F42FA7A324001DDB61 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -426,6 +432,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D3A98F12FA7A324001DDB61 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -433,6 +440,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D3A98F22FA7A324001DDB61 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

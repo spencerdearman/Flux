@@ -11,6 +11,7 @@ import SwiftData
 @main
 struct FluxMacApp: App {
     @StateObject private var calendarStore = FluxCalendarStore()
+    private static let cloudKitContainerIdentifier = "iCloud.com.spencerdearman.Flux"
     let sharedModelContainer: ModelContainer
     
     init() {
@@ -23,8 +24,9 @@ struct FluxMacApp: App {
             FluxTag.self
         ])
         let modelConfiguration = ModelConfiguration(
-            "FluxMacWorkspace",
-            schema: schema
+            "Flux",
+            schema: schema,
+            cloudKitDatabase: .private(Self.cloudKitContainerIdentifier)
         )
         
         do {

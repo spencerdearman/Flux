@@ -1,10 +1,3 @@
-//
-//  FluxMacModels.swift
-//  FluxMac
-//
-//  Created by OpenAI.
-//
-
 import Foundation
 import SwiftData
 
@@ -289,18 +282,6 @@ extension FluxTask {
 
     var checklistItems: [FluxChecklistItem] {
         checklist ?? []
-    }
-
-    var plainContext: String {
-        [
-            title,
-            notes,
-            area?.title,
-            project?.title,
-            tagList.map(\.title).joined(separator: " ")
-        ]
-        .compactMap { $0 }
-        .joined(separator: " ")
     }
 
     var recurrenceDescription: String? {
