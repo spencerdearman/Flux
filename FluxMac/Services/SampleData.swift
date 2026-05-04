@@ -8,19 +8,19 @@
 import Foundation
 import SwiftData
 
-enum FluxMacSampleDataSeeder {
+enum SampleDataSeeder {
     @MainActor
     static func bootstrapIfNeeded(in context: ModelContext) {
-        let descriptor = FetchDescriptor<FluxArea>()
+        let descriptor = FetchDescriptor<Area>()
         if let existing = try? context.fetch(descriptor), !existing.isEmpty {
             return
         }
 
-        let work = FluxArea(title: "Work", notes: "Professional commitments and shipping work.", symbolName: "briefcase.fill", tintHex: "#62666D", sortOrder: 0)
-        let health = FluxArea(title: "Health", notes: "Body, energy, appointments, and routines.", symbolName: "heart.fill", tintHex: "#FF383C", sortOrder: 1)
-        let personal = FluxArea(title: "Personal", notes: "Life admin and personal projects.", symbolName: "house.fill", tintHex: "#8A7D6A", sortOrder: 2)
+        let work = Area(title: "Work", notes: "Professional commitments and shipping work.", symbolName: "briefcase.fill", tintHex: "#62666D", sortOrder: 0)
+        let health = Area(title: "Health", notes: "Body, energy, appointments, and routines.", symbolName: "heart.fill", tintHex: "#FF383C", sortOrder: 1)
+        let personal = Area(title: "Personal", notes: "Life admin and personal projects.", symbolName: "house.fill", tintHex: "#8A7D6A", sortOrder: 2)
 
-        let keynote = FluxProject(
+        let keynote = Project(
             title: "Prepare Presentation",
             notes: """
             ## Keep it concise
@@ -31,15 +31,15 @@ enum FluxMacSampleDataSeeder {
             sortOrder: 0,
             area: work
         )
-        let slides = FluxHeading(title: "Slides and notes", sortOrder: 0, project: keynote)
-        let prep = FluxHeading(title: "Preparation", sortOrder: 1, project: keynote)
-        let facilities = FluxHeading(title: "Facilities", sortOrder: 2, project: keynote)
+        let slides = Heading(title: "Slides and notes", sortOrder: 0, project: keynote)
+        let prep = Heading(title: "Preparation", sortOrder: 1, project: keynote)
+        let facilities = Heading(title: "Facilities", sortOrder: 2, project: keynote)
 
-        let important = FluxTag(title: "Important", symbolName: "exclamationmark.circle", tintHex: "#7A7068")
-        let john = FluxTag(title: "John", symbolName: "person.fill", tintHex: "#8A8E95")
-        let errands = FluxTag(title: "Errand", symbolName: "car.fill", tintHex: "#72767D")
+        let important = Tag(title: "Important", symbolName: "exclamationmark.circle", tintHex: "#7A7068")
+        let john = Tag(title: "John", symbolName: "person.fill", tintHex: "#8A8E95")
+        let errands = Tag(title: "Errand", symbolName: "car.fill", tintHex: "#72767D")
 
-        let task1 = FluxTask(
+        let task1 = TaskItem(
             title: "Revise introduction",
             notes: "Tighten the opening two slides and simplify the problem statement.",
             whenDate: .now,
@@ -47,7 +47,7 @@ enum FluxMacSampleDataSeeder {
             project: keynote,
             heading: slides
         )
-        let task2 = FluxTask(
+        let task2 = TaskItem(
             title: "Review milestones from last quarter",
             notes: "Confirm the final metrics before presenting.",
             whenDate: .now,
@@ -55,8 +55,8 @@ enum FluxMacSampleDataSeeder {
             project: keynote,
             heading: slides
         )
-        let task2Important = FluxTaskTagAssignment(task: task2, tag: important)
-        let task3 = FluxTask(
+        let task2Important = TaskTagAssignment(task: task2, tag: important)
+        let task3 = TaskItem(
             title: "Book the conference room",
             notes: "Reserve the room with screen sharing enabled.",
             whenDate: Calendar.current.date(byAdding: .day, value: 1, to: .now),
@@ -65,29 +65,29 @@ enum FluxMacSampleDataSeeder {
             project: keynote,
             heading: facilities
         )
-        let task3Important = FluxTaskTagAssignment(task: task3, tag: important)
-        let task4 = FluxTask(
+        let task3Important = TaskTagAssignment(task: task3, tag: important)
+        let task4 = TaskItem(
             title: "Renew gym membership",
             notes: "Check if annual pricing is better than month-to-month.",
             status: .active,
             isInInbox: true
         )
-        let task5 = FluxTask(
+        let task5 = TaskItem(
             title: "Research Japanese study plan",
             notes: "Maybe start with a light reading + listening routine.",
             status: .someday,
             isInInbox: false,
             area: personal
         )
-        let task6 = FluxTask(
+        let task6 = TaskItem(
             title: "Schedule annual physical",
             notes: "Call the clinic and confirm fasting instructions.",
             whenDate: .now,
             isInInbox: false,
             area: health
         )
-        let task6Errands = FluxTaskTagAssignment(task: task6, tag: errands)
-        let task7 = FluxTask(
+        let task6Errands = TaskTagAssignment(task: task6, tag: errands)
+        let task7 = TaskItem(
             title: "Share final deck with John",
             notes: "Send the PDF after QA and ask for one last pass.",
             whenDate: .now,
@@ -97,10 +97,10 @@ enum FluxMacSampleDataSeeder {
             heading: prep
         )
         task7.completedAt = Calendar.current.date(byAdding: .day, value: -1, to: .now)
-        let task7John = FluxTaskTagAssignment(task: task7, tag: john)
+        let task7John = TaskTagAssignment(task: task7, tag: john)
 
-        let checklist1 = FluxChecklistItem(title: "Capture revised numbers", sortOrder: 0, task: task1)
-        let checklist2 = FluxChecklistItem(title: "Shorten slide 2", isCompleted: true, sortOrder: 1, task: task1)
+        let checklist1 = ChecklistItem(title: "Capture revised numbers", sortOrder: 0, task: task1)
+        let checklist2 = ChecklistItem(title: "Shorten slide 2", isCompleted: true, sortOrder: 1, task: task1)
         task1.checklist = [checklist1, checklist2]
 
         context.insert(work)

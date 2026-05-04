@@ -10,18 +10,19 @@ import SwiftData
 
 @main
 struct FluxMacApp: App {
-    @StateObject private var calendarStore = FluxCalendarStore()
+    @StateObject private var calendarStore = CalendarStore()
     private static let cloudKitContainerIdentifier = "iCloud.com.spencerdearman.Flux"
     let sharedModelContainer: ModelContainer
     
     init() {
         let schema = Schema([
-            FluxArea.self,
-            FluxProject.self,
-            FluxHeading.self,
-            FluxTask.self,
-            FluxChecklistItem.self,
-            FluxTag.self
+            Area.self,
+            Project.self,
+            Heading.self,
+            TaskItem.self,
+            ChecklistItem.self,
+            Tag.self,
+            TaskTagAssignment.self
         ])
         let modelConfiguration = ModelConfiguration(
             "Flux",
@@ -31,7 +32,7 @@ struct FluxMacApp: App {
         
         do {
             let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
-            FluxMacSampleDataSeeder.bootstrapIfNeeded(in: container.mainContext)
+            SampleDataSeeder.bootstrapIfNeeded(in: container.mainContext)
             self.sharedModelContainer = container
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
@@ -60,12 +61,12 @@ struct FluxMacApp: App {
         }
         .defaultSize(width: 820, height: 720)
         .commands {
-            FluxMacCommands()
+            AppCommands()
         }
     }
 }
 
-private struct FluxMacCommands: Commands {
+private struct AppCommands: Commands {
     @Environment(\.openWindow) private var openWindow
     @FocusedValue(\.selectedProjectID) private var selectedProjectID
 

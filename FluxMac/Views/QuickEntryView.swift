@@ -12,11 +12,11 @@ struct QuickEntryView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
-    @Query(sort: \FluxArea.sortOrder) private var areas: [FluxArea]
-    @Query(sort: \FluxProject.sortOrder) private var projects: [FluxProject]
-    @Query(sort: \FluxTag.title) private var allTags: [FluxTag]
+    @Query(sort: \Area.sortOrder) private var areas: [Area]
+    @Query(sort: \Project.sortOrder) private var projects: [Project]
+    @Query(sort: \Tag.title) private var allTags: [Tag]
 
-    let defaultSelection: FluxSidebarSelection?
+    let defaultSelection: SidebarSelection?
 
     @State private var title = ""
     @State private var notes = ""
@@ -25,7 +25,7 @@ struct QuickEntryView: View {
     @State private var whenDate: Date?
     @State private var deadline: Date?
     @State private var isEvening = false
-    @State private var selectedTags: [FluxTag] = []
+    @State private var selectedTags: [Tag] = []
 
     @State private var showCalendarPopover = false
     @State private var showTagsPopover = false
@@ -304,7 +304,7 @@ struct QuickEntryView: View {
                 }
             }
 
-            FluxCalendarGrid(
+            CalendarGrid(
                 selectedDate: whenDate,
                 onSelect: { date in
                     whenDate = date
@@ -354,7 +354,7 @@ struct QuickEntryView: View {
                 }
             }
 
-            FluxCalendarGrid(
+            CalendarGrid(
                 selectedDate: deadline,
                 accentColor: .orange,
                 onSelect: { date in
@@ -384,7 +384,7 @@ struct QuickEntryView: View {
         .buttonStyle(.plain)
     }
 
-    private var filteredProjects: [FluxProject] {
+    private var filteredProjects: [Project] {
         if let selectedAreaID {
             return projects.filter { $0.area?.id == selectedAreaID }
         }
@@ -410,11 +410,11 @@ struct QuickEntryView: View {
 
         let selectedArea = areas.first(where: { $0.id == selectedAreaID })
         let selectedProject = projects.first(where: { $0.id == selectedProjectID })
-        let routing = FluxSemanticRouter.analyze(title: normalizedTitle, notes: normalizedNotes, areas: areas)
+        let routing = SemanticRouter.analyze(title: normalizedTitle, notes: normalizedNotes, areas: areas)
 
         let resolvedArea = selectedArea ?? selectedProject?.area ?? routing.matchedArea
         let resolvedWhen = whenDate ?? routing.suggestedWhen
-        let task = FluxTask(
+        let task = TaskItem(
             title: normalizedTitle,
             notes: normalizedNotes,
             whenDate: resolvedWhen,
@@ -426,7 +426,7 @@ struct QuickEntryView: View {
         )
         modelContext.insert(task)
         for tag in selectedTags {
-            let assignment = FluxTaskTagAssignment(task: task, tag: tag)
+            let assignment = TaskTagAssignment(task: task, tag: tag)
             modelContext.insert(assignment)
         }
         try? modelContext.save()
@@ -435,13 +435,13 @@ struct QuickEntryView: View {
 }
 
 private struct QuickEntryTagPanel: View {
-    let allTags: [FluxTag]
-    @Binding var selectedTags: [FluxTag]
+    let allTags: [Tag]
+    @Binding var selectedTags: [Tag]
     let modelContext: ModelContext
 
     @State private var searchText = ""
 
-    private var filteredTags: [FluxTag] {
+    private var filteredTags: [Tag] {
         let unassigned = allTags.filter { tag in
             !selectedTags.contains(where: { $0.id == tag.id })
         }
@@ -492,22 +492,10 @@ private struct QuickEntryTagPanel: View {
     private func createTag() {
         let name = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else { return }
-        let tag = FluxTag(title: name, tintHex: FluxTag.nextColor(forIndex: allTags.count))
+        let tag = Tag(title: name, tintHex: Tag.nextColor(forIndex: allTags.count))
         modelContext.insert(tag)
         selectedTags.append(tag)
         try? modelContext.save()
         searchText = ""
-    }
-}
-
-private extension Color {
-    init(hex: String) {
-        let sanitized = hex.replacingOccurrences(of: "#", with: "")
-        var value: UInt64 = 0
-        Scanner(string: sanitized).scanHexInt64(&value)
-        let red = Double((value & 0xFF0000) >> 16) / 255
-        let green = Double((value & 0x00FF00) >> 8) / 255
-        let blue = Double(value & 0x0000FF) / 255
-        self.init(red: red, green: green, blue: blue)
     }
 }

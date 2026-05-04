@@ -10,7 +10,7 @@ import EventKit
 import Foundation
 import SwiftData
 
-struct FluxCalendarEvent: Identifiable {
+struct CalendarEvent: Identifiable {
     let id: String
     let title: String
     let startDate: Date
@@ -20,9 +20,9 @@ struct FluxCalendarEvent: Identifiable {
 }
 
 @MainActor
-final class FluxCalendarStore: ObservableObject {
-    @Published private(set) var todayEvents: [FluxCalendarEvent] = []
-    @Published private(set) var upcomingEvents: [FluxCalendarEvent] = []
+final class CalendarStore: ObservableObject {
+    @Published private(set) var todayEvents: [CalendarEvent] = []
+    @Published private(set) var upcomingEvents: [CalendarEvent] = []
     @Published private(set) var calendarAccessGranted = false
     @Published private(set) var remindersAccessGranted = false
 
@@ -42,13 +42,13 @@ final class FluxCalendarStore: ObservableObject {
 
         todayEvents = eventStore.events(matching: todayPredicate)
             .sorted { $0.startDate < $1.startDate }
-            .map(FluxCalendarEvent.init)
+            .map(CalendarEvent.init)
         upcomingEvents = eventStore.events(matching: weekPredicate)
             .sorted { $0.startDate < $1.startDate }
-            .map(FluxCalendarEvent.init)
+            .map(CalendarEvent.init)
     }
 
-    func importReminders(into context: ModelContext, areas: [FluxArea]) {
+    func importReminders(into context: ModelContext, areas: [Area]) {
         requestAccessIfNeeded()
         guard remindersAccessGranted else { return }
 
@@ -58,13 +58,13 @@ final class FluxCalendarStore: ObservableObject {
 
             Task { @MainActor in
                 let existingTitles = Set(
-                    (try? context.fetch(FetchDescriptor<FluxTask>()))?.map { $0.title.lowercased() } ?? []
+                    (try? context.fetch(FetchDescriptor<TaskItem>()))?.map { $0.title.lowercased() } ?? []
                 )
 
                 for reminder in reminders where !existingTitles.contains(reminder.title.lowercased()) {
                     let notes = reminder.notes ?? ""
-                    let decision = FluxSemanticRouter.analyze(title: reminder.title, notes: notes, areas: areas)
-                    let task = FluxTask(
+                    let decision = SemanticRouter.analyze(title: reminder.title, notes: notes, areas: areas)
+                    let task = TaskItem(
                         title: reminder.title,
                         notes: notes,
                         whenDate: reminder.dueDateComponents?.date,
@@ -102,7 +102,7 @@ final class FluxCalendarStore: ObservableObject {
     }
 }
 
-private extension FluxCalendarEvent {
+private extension CalendarEvent {
     init(event: EKEvent) {
         self.id = event.eventIdentifier
         self.title = event.title

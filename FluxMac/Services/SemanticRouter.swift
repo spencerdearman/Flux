@@ -8,15 +8,15 @@
 import Foundation
 import NaturalLanguage
 
-struct FluxSemanticRoutingDecision {
-    let matchedArea: FluxArea?
-    let suggestedStatus: FluxTaskStatus
+struct SemanticRoutingDecision {
+    let matchedArea: Area?
+    let suggestedStatus: TaskStatus
     let suggestedWhen: Date?
     let shouldMarkEvening: Bool
 }
 
-enum FluxSemanticRouter {
-    static func analyze(title: String, notes: String, areas: [FluxArea]) -> FluxSemanticRoutingDecision {
+enum SemanticRouter {
+    static func analyze(title: String, notes: String, areas: [Area]) -> SemanticRoutingDecision {
         let body = [title, notes].joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
         let matchedArea = inferArea(for: body, areas: areas)
         let status = inferStatus(for: body)
@@ -25,7 +25,7 @@ enum FluxSemanticRouter {
             || body.localizedCaseInsensitiveContains("tonight")
             || body.localizedCaseInsensitiveContains("after work")
 
-        return FluxSemanticRoutingDecision(
+        return SemanticRoutingDecision(
             matchedArea: matchedArea,
             suggestedStatus: status,
             suggestedWhen: suggestedWhen,
@@ -33,7 +33,7 @@ enum FluxSemanticRouter {
         )
     }
 
-    private static func inferArea(for body: String, areas: [FluxArea]) -> FluxArea? {
+    private static func inferArea(for body: String, areas: [Area]) -> Area? {
         guard !body.isEmpty, !areas.isEmpty else { return nil }
 
         let normalized = body.lowercased()
@@ -48,7 +48,7 @@ enum FluxSemanticRouter {
             return nil
         }
 
-        var bestArea: FluxArea?
+        var bestArea: Area?
         var bestDistance = Double.greatestFiniteMagnitude
 
         for area in areas {
@@ -63,7 +63,7 @@ enum FluxSemanticRouter {
         return bestDistance < 0.92 ? bestArea : nil
     }
 
-    private static func inferStatus(for body: String) -> FluxTaskStatus {
+    private static func inferStatus(for body: String) -> TaskStatus {
         let lowered = body.lowercased()
         let somedaySignals = [
             "someday", "maybe", "explore", "brainstorm", "consider",
@@ -75,7 +75,7 @@ enum FluxSemanticRouter {
         return .active
     }
 
-    private static func inferDate(for body: String, status: FluxTaskStatus) -> Date? {
+    private static func inferDate(for body: String, status: TaskStatus) -> Date? {
         guard status == .active else { return nil }
         let lowered = body.lowercased()
         let calendar = Calendar.current
